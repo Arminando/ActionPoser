@@ -10,3 +10,11 @@ Currently the main feature is creation of action constraint driven rigging.
 A bone's transform channel or any other property can be used to drive action constraints.
 
 > ![Installation instructions](images/blender_XRXHmdipBF.gif)
+
+> ## Poses List
+> This section contains the list of existing poses and has some useful operators to manipulate them.
+> Hover over buttons to read what they do.
+> 
+> Execute - purges all existing poses and builds everything. Press this button whenever you make changes to the setup
+> Purge - removes all existing poses from the rig
+> ![UI showcase](images/pose list.png)
