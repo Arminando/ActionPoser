@@ -17,4 +17,4 @@ A bone's transform channel or any other property can be used to drive action con
 > 
 > Execute - purges all existing poses and builds everything. Press this button whenever you make changes to the setup
 > Purge - removes all existing poses from the rig
-> ![UI showcase](images/pose list.png)
+> ![Pose List](images/pose list.png)
