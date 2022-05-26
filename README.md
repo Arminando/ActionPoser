@@ -26,7 +26,7 @@ A bone's transform channel or any other property can be used to drive action con
 > Adjust what type of pose to create, and how it will be driven.
 > Currently only the Pose type is supported, which is an action constraint driven setup.
 >
->Target can be driven by a Bone, or a Property. For the property typ, paste any data path into the field. Must be a single value property, no vectors.
+>Target can be driven by a Bone, or a Property. For the property type, paste any data path into the field. Must be a single value property, no vectors.
 >Min and Max define at which range the pose will be activated
 > 
 > ![Pose List](images/pose.png) ![Pose List](images/pose2.png)
