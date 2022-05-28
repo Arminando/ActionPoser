@@ -100,6 +100,8 @@ class VIEW3D_PT_action_poser_pose(ActionPoserPanel):
                 col.label(text = 'Poses to Correct')
                 col.prop_search(active_pose, 'corr_pose_A', armature, 'ap_poses')
                 col.prop_search(active_pose, 'corr_pose_B', armature, 'ap_poses')
+                col.separator()
+                col.prop(active_pose, 'mix')
 
             else:
                 col.label(text='Feature not implemented yet. Have a nice day.')
@@ -232,6 +234,12 @@ class VIEW3D_UL_actions_list(UIList):
                 split.label(text=str(min(value1, value2)))
             except:
                 split.label(text='?')
+        
+        if item.build:
+            icon = 'HIDE_OFF'
+        else:
+            icon = 'HIDE_ON'
+        row.prop(item, 'build', icon=icon, text='')
                 
 
 

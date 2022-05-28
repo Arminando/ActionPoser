@@ -86,8 +86,19 @@ def enable_pose_constraints():
             if prefs.constraint_prefix in constraint.name:
                 constraint.enabled = True
 
+def delete_temp_constraints():
+    context = bpy.context
+    bones = context.active_object.pose.bones
+    prefs = context.scene.ap_preferences
 
-def create_pose(pose):
+    for bone in bones:
+        constraints = bone.constraints
+
+        for constraint in constraints:
+            if 'AP-edit_mode_temp_constraint' in constraint.name:
+                constraints.remove(constraint)
+
+def create_pose(pose, for_edit=False):
     context = bpy.context
     armature = context.active_object.data
     pose_bones = context.active_object.pose.bones
@@ -111,24 +122,29 @@ def create_pose(pose):
         constraint.mix_mode = pose.mix
         constraint.influence = influence
         
-        if pose.type == 'POSE':
-            if pose.target_type == 'BONE':
-                constraint.target = pose.target
-                constraint.subtarget = pose.bone
+        if not for_edit:
+            if pose.type == 'POSE':
+                if pose.target_type == 'BONE':
+                    constraint.target = pose.target
+                    constraint.subtarget = pose.bone
 
-                constraint.transform_channel = pose.channel
-                constraint.target_space = pose.space
+                    constraint.transform_channel = pose.channel
+                    constraint.target_space = pose.space
 
-                constraint.min = pose.transform_min
-                constraint.max = pose.transform_max
+                    constraint.min = pose.transform_min
+                    constraint.max = pose.transform_max
 
-            elif pose.target_type == 'PROP':
-                constraint.use_eval_time = True
-                add_driver_pose_property(constraint, pose.target, pose.data_path, pose.transform_min, pose.transform_max)
+                elif pose.target_type == 'PROP':
+                    constraint.use_eval_time = True
+                    add_driver_pose_property(constraint, pose.target, pose.data_path, pose.transform_min, pose.transform_max)
 
-        elif pose.type == 'CORRECTIVE':
-                constraint.use_eval_time = True
-                add_driver_corrective(constraint, armature.ap_poses[pose.corr_pose_A], armature.ap_poses[pose.corr_pose_B])
+            elif pose.type == 'CORRECTIVE':
+                    constraint.use_eval_time = True
+                    add_driver_corrective(constraint, armature.ap_poses[pose.corr_pose_A], armature.ap_poses[pose.corr_pose_B])
+        else:
+            constraint.use_eval_time = True
+            constraint.eval_time = 1.0
+            constraint.name = 'AP-edit_mode_temp_constraint'
 
 
 

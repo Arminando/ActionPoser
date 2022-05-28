@@ -1,5 +1,11 @@
 import bpy
-from . utilities import is_valid_pose, purge_poses, create_pose, enable_pose_constraints, disable_pose_constraints, reset_bone_transforms
+from . utilities import (is_valid_pose,
+                        purge_poses,
+                        create_pose,
+                        enable_pose_constraints,
+                        disable_pose_constraints,
+                        reset_bone_transforms,
+                        delete_temp_constraints)
 
 class DATA_OT_ap_execute(bpy.types.Operator):
     bl_idname = "armature.ap_execute"
@@ -24,7 +30,7 @@ class DATA_OT_ap_execute(bpy.types.Operator):
 
         purge_poses()
         for pose in ap_poses:
-            if is_valid_pose(pose):
+            if is_valid_pose(pose) and pose.build:
                 create_pose(pose)
 
         self.report({'INFO'}, 'Poses Created Successfully')
@@ -125,6 +131,10 @@ class DATA_OT_ap_action_edit(bpy.types.Operator):
 
             # Disable constraints
             disable_pose_constraints()
+            
+            if ap_pose.type == 'CORRECTIVE':
+                create_pose(armature.ap_poses[ap_pose.corr_pose_A], for_edit=True)
+                create_pose(armature.ap_poses[ap_pose.corr_pose_B], for_edit=True)
             self.report({'INFO'}, 'Action Edit engaged')
 
         else:
@@ -174,6 +184,7 @@ class DATA_OT_ap_action_edit(bpy.types.Operator):
             ap_bone_transforms.clear()
 
             # Enable Constraints
+            delete_temp_constraints()
             enable_pose_constraints()
 
             #Autokey restore

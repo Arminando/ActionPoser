@@ -8,6 +8,7 @@ class APBones(bpy.types.PropertyGroup):
 
 class APPoses(bpy.types.PropertyGroup):
     name : bpy.props.StringProperty(name="Pose Name", default="",description="Name of pose")
+    build : bpy.props.BoolProperty(name="Build", default = True, description="Exclude pose when build is executed")
     type : bpy.props.EnumProperty(name='Type', description='Type of action pose', items={('POSE', 'Pose', 'Pose', 0), ('CORRECTIVE', 'Corrective', 'Corrective', 1)}, default='POSE')
     target_type : bpy.props.EnumProperty(name='Target Type', description='Choose if the pose will be driven by a property or bone transform', items={('BONE', 'Bone', 'Bone', 0), ('PROP', 'Property', 'Property', 1)}, default='BONE')
 
