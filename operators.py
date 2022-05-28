@@ -19,6 +19,9 @@ class DATA_OT_ap_execute(bpy.types.Operator):
         armature = context.active_object.data
         ap_poses = armature.ap_poses
 
+        if armature.ap_state.editing:
+            bpy.ops.armature.ap_action_edit(idx = armature.ap_poses_index)
+
         purge_poses()
         for pose in ap_poses:
             if is_valid_pose(pose):

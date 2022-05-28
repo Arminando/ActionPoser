@@ -96,22 +96,22 @@ def create_pose(pose):
 
     constraint_name = prefs.constraint_prefix + pose.name
 
-    if pose.type == 'POSE':
-        for ap_bone in ap_bones:
-            if not pose_bones[ap_bone.bone]:
-                continue
-            bone = pose_bones[ap_bone.bone]
-            influence = ap_bone.influence
+    for ap_bone in ap_bones:
+        if not ap_bone.bone and ap_bone.bone in pose_bones:
+            continue
+        bone = pose_bones[ap_bone.bone]
+        influence = ap_bone.influence
 
-            constraint = bone.constraints.new('ACTION')
-            constraint.name = constraint_name
+        constraint = bone.constraints.new('ACTION')
+        constraint.name = constraint_name
 
-            constraint.action = pose.action
-            constraint.frame_start = pose.start_frame
-            constraint.frame_end = pose.end_frame
-            constraint.mix_mode = pose.mix
-            constraint.influence = influence
-
+        constraint.action = pose.action
+        constraint.frame_start = pose.start_frame
+        constraint.frame_end = pose.end_frame
+        constraint.mix_mode = pose.mix
+        constraint.influence = influence
+        
+        if pose.type == 'POSE':
             if pose.target_type == 'BONE':
                 constraint.target = pose.target
                 constraint.subtarget = pose.bone
@@ -125,6 +125,10 @@ def create_pose(pose):
             elif pose.target_type == 'PROP':
                 constraint.use_eval_time = True
                 add_driver_pose_property(constraint, pose.target, pose.data_path, pose.transform_min, pose.transform_max)
+
+        elif pose.type == 'CORRECTIVE':
+                constraint.use_eval_time = True
+                add_driver_corrective(constraint, armature.ap_poses[pose.corr_pose_A], armature.ap_poses[pose.corr_pose_B])
 
 
 
@@ -178,19 +182,83 @@ def map_channel_enum(channel: str) -> list:
     return dict[channel][0], dict[channel][1]
 
 
+def map_channel_driver(channel: str) -> list:
+    
+    dict = {'LOCATION_X': 'LOC_X',
+            'LOCATION_Y': 'LOC_Y',
+            'LOCATION_Z': 'LOC_Z',
+            'ROTATION_X': 'ROT_X',
+            'ROTATION_Y': 'ROT_Y',
+            'ROTATION_Z': 'ROT_Z',
+            'SCALE_X': 'SCALE_X',
+            'SCALE_Y': 'SCALE_Y',
+            'SCALE_Z': 'SCALE_Z'}
+    return dict[channel]
+
+def map_space_driver(space: str) -> list:
+    
+    dict = {'LOCAL': 'LOCAL_SPACE',
+            'WORLD': 'WORLD_SPACE'}
+    return dict[space]
+
+
 def normalize_min_max(value: float, value_min: float, value_max: float) -> float:
         return max(0.0, (value - value_min) / (value_max - value_min))
 
 
-# prop = eval.time
-def add_driver_pose_property(constraint: bpy.types.Constraint, target:str, datapath: str, targetMin: float, targetMax: float) -> bpy.types.Driver:
+def mapped_value(item) -> float:
+    if item.target_type == 'BONE':
+        channel, index = map_channel_enum(item.channel)
+        value = getattr(item.target.pose.bones[item.bone], channel)[index]
+    elif item.target_type == 'PROP':
+        loc ={}
+        exec('value = bpy.data.objects["' + item.target.name + '"].' + item.data_path, globals(), loc)
+        value = loc['value']
+    return normalize_min_max(value, item.transform_min, item.transform_max)
+
+
+def add_driver_pose_property(constraint: bpy.types.Constraint, target:str, data_path: str, targetMin: float, targetMax: float) -> bpy.types.Driver:
     """Adds driver to property"""
     
     driver = constraint.driver_add('eval_time').driver
     variable = driver.variables.new()
     variable.name = 'source'
     variable.targets[0].id = target
-    variable.targets[0].data_path = datapath
+    variable.targets[0].data_path = data_path
     driver.expression = '(' + variable.name + ' - ' + str(targetMin) + ') / (' + str(targetMax) + ' - ' + str(targetMin) + ')'
 
     return driver
+
+def add_driver_corrective(constraint: bpy.types.Constraint, corr_pose_A, corr_pose_B) -> bpy.types.Driver:
+    """Adds driver to property"""
+    if not corr_pose_A or not corr_pose_B:
+        return
+    variable_names = ['corrA', 'corrB']
+    poses = [corr_pose_A, corr_pose_B]
+
+    driver = constraint.driver_add('eval_time').driver
+    for i in range(0,2):       
+        variable = driver.variables.new()
+        variable.name = variable_names[i]
+        variable.targets[0].id = poses[i].target
+        if poses[i].target_type == 'BONE':
+            variable.type = 'TRANSFORMS'
+            variable.targets[0].bone_target = poses[i].bone
+            variable.targets[0].transform_type = map_channel_driver(poses[i].channel)
+            variable.targets[0].transform_space = map_space_driver(poses[i].space)
+        elif poses[i].target_type == 'PROP':
+            variable.targets[0].data_path = poses[i].data_path
+
+    driver.expression = 'min(( corrA - ' + str(corr_pose_A.transform_min) + ') / (' + str(corr_pose_A.transform_max) + ' - ' + str(corr_pose_A.transform_min) + '), ( corrB - ' + str(corr_pose_B.transform_min) + ') / (' + str(corr_pose_B.transform_max) + ' - ' + str(corr_pose_B.transform_min) + '))'
+
+    return driver
+
+
+def update_ap_poses_index(self, context):
+    armature = context.active_object.data
+
+    if armature.ap_state.editing:
+        #Leave current action edit
+        bpy.ops.armature.ap_action_edit(idx = armature.ap_poses_index)
+        #Enter new action edit with updated action
+        bpy.ops.armature.ap_action_edit(idx = armature.ap_poses_index)

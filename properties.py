@@ -1,6 +1,6 @@
 from email.policy import default
 import bpy
-from . utilities import poll_is_armature_object
+from . utilities import poll_is_armature_object, update_ap_poses_index
 
 class APBones(bpy.types.PropertyGroup):
     bone : bpy.props.StringProperty(name='Bone', default='', description='Bone that will be animated in pose.')
@@ -35,6 +35,9 @@ class APPoses(bpy.types.PropertyGroup):
     space : bpy.props.EnumProperty(name='Space', description='Choose which space to use for driver transform', items={('LOCAL', 'Local', 'Local Space', 0), ('WORLD', 'World', 'World', 1)}, default='LOCAL')
     transform_min : bpy.props.FloatProperty(name='Min', default = 0.0, description='Starting value for the driver', precision=4)
     transform_max : bpy.props.FloatProperty(name='Max', default = 1.0, description='Finishing value for the driver', precision=4)
+
+    corr_pose_A : bpy.props.StringProperty(name='Pose A', description='Pose that will trigger the corrective')
+    corr_pose_B : bpy.props.StringProperty(name='Pose B', description='Pose that will trigger the corrective')
 
     action : bpy.props.PointerProperty(type=bpy.types.Action, name='Action', description='Target action')
     start_frame : bpy.props.IntProperty(name='Start Frame', default = 0, description='Start frame for the action')
@@ -91,7 +94,7 @@ def register():
     bpy.types.Armature.ap_state = bpy.props.PointerProperty(type=APState)
     bpy.types.Armature.ap_bone_transforms = bpy.props.CollectionProperty(type=APBoneTransform)
     bpy.types.Scene.ap_preferences = bpy.props.PointerProperty(type=APPreferences)
-    bpy.types.Armature.ap_poses_index = bpy.props.IntProperty(default=-1)
+    bpy.types.Armature.ap_poses_index = bpy.props.IntProperty(default=-1, update = update_ap_poses_index)
     bpy.types.Armature.ap_bones_index = bpy.props.IntProperty(default=-1)
 
 def unregister():

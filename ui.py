@@ -1,7 +1,7 @@
 import bpy
 from bpy.types import Context, Panel, UIList
 
-from . utilities import is_valid_path, map_channel_enum, normalize_min_max
+from . utilities import is_valid_path, map_channel_enum, normalize_min_max, mapped_value
 
 class ActionPoserPanel(Panel):
     bl_space_type = 'VIEW_3D'
@@ -63,9 +63,9 @@ class VIEW3D_PT_action_poser_pose(ActionPoserPanel):
             col = layout.column(align=True)
             row = col.row()
             row.prop(active_pose, 'type', expand=True)
+            col.separator()
 
             if active_pose.type == 'POSE':
-                col.separator()
                 col.label(text = 'Pose Driver Settings')
                 row = col.row()
                 row.prop(active_pose, 'target')
@@ -96,6 +96,11 @@ class VIEW3D_PT_action_poser_pose(ActionPoserPanel):
                     row = layout.row()
                     row.prop(active_pose, 'transform_min')
                     row.prop(active_pose, 'transform_max')
+            elif active_pose.type == 'CORRECTIVE':
+                col.label(text = 'Poses to Correct')
+                col.prop_search(active_pose, 'corr_pose_A', armature, 'ap_poses')
+                col.prop_search(active_pose, 'corr_pose_B', armature, 'ap_poses')
+
             else:
                 col.label(text='Feature not implemented yet. Have a nice day.')
 
@@ -214,14 +219,17 @@ class VIEW3D_UL_actions_list(UIList):
         else:
             icon = 'NONE'
         split.prop(item, "name", text="", icon=icon)
-        # split.label(text=' ')
         
         if item.type == 'POSE':
             try:
-                channel, index = map_channel_enum(item.channel)
-                value = getattr(bpy.context.active_object.pose.bones[item.bone], channel)[index]
-                mapped_value = normalize_min_max(value, item.transform_min, item.transform_max)
-                split.label(text=str(mapped_value))
+                split.label(text=str(mapped_value(item)))
+            except:
+                split.label(text='?')
+        elif item.type == 'CORRECTIVE':
+            try:
+                value1 = mapped_value(data.ap_poses[item.corr_pose_A])
+                value2 = mapped_value(data.ap_poses[item.corr_pose_B])
+                split.label(text=str(min(value1, value2)))
             except:
                 split.label(text='?')
                 
@@ -287,6 +295,46 @@ class VIEW3D_UL_bones_list(UIList):
         split = split.split(factor=0.15)
         split.label(text='')
         split.prop(item, "influence", emboss=True, text='', slider = True)
+
+    def filter_items(self, context, data, propname):
+        # This function gets the collection property (as the usual tuple (data, propname)), and must return two lists:
+        # * The first one is for filtering, it must contain 32bit integers were self.bitflag_filter_item marks the
+        #   matching item as filtered (i.e. to be shown), and 31 other bits are free for custom needs. Here we use the
+        #   first one to mark VGROUP_EMPTY.
+        # * The second one is for reordering, it must return a list containing the new indices of the items (which
+        #   gives us a mapping org_idx -> new_idx).
+        # Please note that the default UI_UL_list defines helper functions for common tasks (see its doc for more info).
+        # If you do not make filtering and/or ordering, return empty list(s) (this will be more efficient than
+        # returning full lists doing nothing!).
+        ap_bones = getattr(data, propname)
+        helper_funcs = bpy.types.UI_UL_list
+        
+        # Default return values.
+        flt_flags = []
+        flt_neworder = []
+
+        # # Pre-compute of vgroups data, CPU-intensive. :/
+        # vgroups_empty = self.filter_items_empty_vgroups(context, vgroups)
+
+        # Filtering by name
+        if self.filter_name:
+            flt_flags = helper_funcs.filter_items_by_name(self.filter_name, self.bitflag_filter_item, ap_bones, "bone",
+                                                          reverse=self.use_filter_sort_reverse)
+        if not flt_flags:
+            flt_flags = [self.bitflag_filter_item] * len(ap_bones)
+
+        # Reorder by name.
+        if self.use_filter_sort_alpha:
+            sorted_names = [x.bone for x in ap_bones]
+            sorted_names.sort()
+            if self.use_filter_sort_reverse:
+                sorted_names.reverse()
+            for name in sorted_names:
+                flt_neworder.append(ap_bones[name])
+
+            # flt_neworder = helper_funcs.sort_items_helper(ap_bones, "bone", reverse=self.use_filter_sort_reverse)
+
+        return flt_flags, flt_neworder
         
 
 classes = [
