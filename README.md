@@ -29,7 +29,7 @@ A bone's transform channel or any other property can be used to drive action con
 >Target can be driven by a Bone, or a Property. For the property type, paste any data path into the field. Must be a single value property, no vectors.
 >Min and Max define at which range the pose will be activated
 > 
-> ![Pose List](images/pose.png) ![Pose List](images/pose2.png)
+> ![Pose List2](images/pose2.png)
 
 
 > ## Action
@@ -37,10 +37,10 @@ A bone's transform channel or any other property can be used to drive action con
 > Action will be played back in the range of star-end frame, based on the pose driver's min and max values
 > When Edit Action is pressed, the armature state gets reset to remove any bone transformations that are not part of the action. Once editings is finished, press the button again to restore the state.
 > 
-> ![Pose List](images/pose.png) ![Pose List](images/action.png)
+> ![Action](images/action.png)
 
 
 > ## Bones
 > Here you can define which bones will be part of the pose.
 > 
-> ![Pose List](images/pose.png) ![Pose List](images/bones.png)
+> ![Bones](images/bones.png)
