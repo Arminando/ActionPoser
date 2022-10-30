@@ -64,6 +64,7 @@ class VIEW3D_PT_action_poser_pose(ActionPoserPanel):
             row = col.row()
             row.prop(active_pose, 'type', expand=True)
             col.separator()
+            col.prop(active_pose, 'influence')
 
             if active_pose.type == 'POSE':
                 col.label(text = 'Pose Driver Settings')
@@ -96,7 +97,7 @@ class VIEW3D_PT_action_poser_pose(ActionPoserPanel):
                     row = layout.row()
                     row.prop(active_pose, 'transform_min')
                     row.prop(active_pose, 'transform_max')
-            elif active_pose.type == 'CORRECTIVE':
+            elif active_pose.type == 'COMBO':
                 col.label(text = 'Poses to Correct')
                 col.prop_search(active_pose, 'corr_pose_A', armature, 'ap_poses')
                 col.prop_search(active_pose, 'corr_pose_B', armature, 'ap_poses')
@@ -206,7 +207,7 @@ class VIEW3D_PT_action_poser_prefs(ActionPoserPanel):
         col.prop(prefs, 'left_suffix')
         col.prop(prefs, 'right_suffix')
         col.prop(prefs, 'pose_prefix')
-        col.prop(prefs, 'corrective_prefix')
+        col.prop(prefs, 'combo_prefix')
         col.prop(prefs, 'default_name')
 
 
@@ -216,7 +217,7 @@ class VIEW3D_UL_actions_list(UIList):
         
         row = layout.row()
         split = row.split(factor=0.85)
-        if item.type == 'CORRECTIVE':
+        if item.type == 'COMBO':
             icon = 'PLUS'
         else:
             icon = 'NONE'
@@ -227,7 +228,7 @@ class VIEW3D_UL_actions_list(UIList):
                 split.label(text=str(mapped_value(item)))
             except:
                 split.label(text='?')
-        elif item.type == 'CORRECTIVE':
+        elif item.type == 'COMBO':
             try:
                 value1 = mapped_value(data.ap_poses[item.corr_pose_A])
                 value2 = mapped_value(data.ap_poses[item.corr_pose_B])

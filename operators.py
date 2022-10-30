@@ -132,7 +132,7 @@ class DATA_OT_ap_action_edit(bpy.types.Operator):
             # Disable constraints
             disable_pose_constraints()
             
-            if ap_pose.type == 'CORRECTIVE':
+            if ap_pose.type == 'COMBO':
                 create_pose(armature.ap_poses[ap_pose.corr_pose_A], for_edit=True)
                 create_pose(armature.ap_poses[ap_pose.corr_pose_B], for_edit=True)
             self.report({'INFO'}, 'Action Edit engaged')

@@ -27,8 +27,8 @@ class DATA_OT_ap_action_new(bpy.types.Operator):
 
         if ap_pose.type == 'POSE':
             action.name = prefs.pose_prefix + action.name
-        elif ap_pose.type == 'CORRECTIVE':
-            action.name = prefs.corrective_prefix + action.name
+        elif ap_pose.type == 'COMBO':
+            action.name = prefs.combo_prefix + action.name
 
         return {'FINISHED'}
 
