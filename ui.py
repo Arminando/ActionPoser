@@ -64,7 +64,6 @@ class VIEW3D_PT_action_poser_pose(ActionPoserPanel):
             row = col.row()
             row.prop(active_pose, 'type', expand=True)
             col.separator()
-            col.prop(active_pose, 'influence')
 
             if active_pose.type == 'POSE':
                 col.label(text = 'Pose Driver Settings')
