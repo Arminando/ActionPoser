@@ -132,9 +132,16 @@ class DATA_OT_ap_action_edit(bpy.types.Operator):
             # Disable constraints
             disable_pose_constraints()
             
+            # Recursive enabling of combo poses.
+            # Needed so that the edit combines all poses that go into combos+combos
             if ap_pose.type == 'COMBO':
-                create_pose(armature.ap_poses[ap_pose.corr_pose_A], for_edit=True)
-                create_pose(armature.ap_poses[ap_pose.corr_pose_B], for_edit=True)
+                nested_pose_list = [ap_pose.corr_pose_A, ap_pose.corr_pose_B]
+                while nested_pose_list:
+                    pose = armature.ap_poses[nested_pose_list.pop(0)]
+                    if pose.type == 'COMBO':
+                        nested_pose_list.append(pose.corr_pose_A)
+                        nested_pose_list.append(pose.corr_pose_B)
+                    create_pose(pose, for_edit=True)
             self.report({'INFO'}, 'Action Edit engaged')
 
         else:

@@ -131,7 +131,7 @@ def create_pose(pose, for_edit=False):
 
     for ap_bone in ap_bones:
         if ap_bone.bone not in pose_bones:
-            print("Unable to constrain bone: ", ap_bone.bone, " in pose: ", pose.name)
+            print("Could not find bone: ", ap_bone.bone, " for pose: ", pose.name)
             continue
         bone = pose_bones[ap_bone.bone]
         influence = ap_bone.influence
