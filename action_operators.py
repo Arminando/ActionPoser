@@ -1,4 +1,3 @@
-from email.policy import default
 import bpy
 from . utilities import is_valid_pose, purge_poses, create_pose, enable_pose_constraints, disable_pose_constraints, reset_bone_transforms
 

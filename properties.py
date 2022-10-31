@@ -1,4 +1,3 @@
-from email.policy import default
 import bpy
 from . utilities import poll_is_armature_object, update_ap_poses_index
 

@@ -1,7 +1,7 @@
 import bpy
 from bpy.types import Context, Panel, UIList
 
-from . utilities import is_valid_path, map_channel_enum, normalize_min_max, mapped_value
+from . utilities import is_valid_path
 
 class ActionPoserPanel(Panel):
     bl_space_type = 'VIEW_3D'
@@ -223,18 +223,7 @@ class VIEW3D_UL_actions_list(UIList):
             icon = 'NONE'
         split.prop(item, "name", text="", icon=icon)
         
-        if item.type == 'POSE':
-            try:
-                split.label(text=str(mapped_value(item)))
-            except:
-                split.label(text='?')
-        elif item.type == 'COMBO':
-            try:
-                value1 = mapped_value(data.ap_poses[item.corr_pose_A])
-                value2 = mapped_value(data.ap_poses[item.corr_pose_B])
-                split.label(text=str(min(value1, value2)))
-            except:
-                split.label(text='?')
+        split.label(text=str("%.2f" % item.influence))
         
         if item.build:
             icon = 'HIDE_OFF'
@@ -242,7 +231,6 @@ class VIEW3D_UL_actions_list(UIList):
             icon = 'HIDE_ON'
         row.prop(item, 'build', icon=icon, text='')
                 
-
 
 class VIEW3D_MT_poses_menu(bpy.types.Menu):
     bl_label = 'Additional Operators'

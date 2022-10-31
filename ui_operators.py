@@ -1,7 +1,7 @@
 import bpy
 from . utilities import (find_opposite_bone_name,
                         find_opposite_object_name,
-                        find_opposite_action_name,
+                        find_opposite_action_name, find_opposite_pose_name,
                         swap_side_suffix,
                         disable_pose_constraints,
                         enable_pose_constraints)
@@ -66,6 +66,8 @@ PROPERTIES = [
                 'action',
                 'start_frame',
                 'end_frame',
+                'corr_pose_A',
+                'corr_pose_B'
             ]
 
 class DATA_OT_ap_pose_duplicate(bpy.types.Operator):
@@ -151,6 +153,13 @@ class DATA_OT_ap_pose_mirror(bpy.types.Operator):
                 else:
                     new_bone.bone = bone.bone
                 new_bone.influence = bone.influence
+
+        opposite_pose_A = find_opposite_pose_name(old_pose.corr_pose_A)
+        opposite_pose_B = find_opposite_pose_name(old_pose.corr_pose_B)
+        if opposite_pose_A:
+            new_pose.corr_pose_A = opposite_pose_A
+        if opposite_pose_B:
+            new_pose.corr_pose_B = opposite_pose_B
 
         armature = context.active_object.data
         armature.ap_poses.move(len(armature.ap_poses) - 1, self.idx+1)
