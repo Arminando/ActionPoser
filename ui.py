@@ -240,6 +240,11 @@ class VIEW3D_MT_poses_menu(bpy.types.Menu):
 
         layout.operator("armature.ap_pose_move", icon='ANCHOR_TOP', text="Move to Top").direction = 'TOP'
         layout.operator("armature.ap_pose_move", icon='ANCHOR_BOTTOM', text="Move to Bottom").direction = 'BOTTOM'
+        layout.separator()
+        layout.operator("armature.ap_copy", text = 'Copy All to Selected').mode = 'ALL'
+        layout.operator("armature.ap_copy", text = 'Copy Active to Selected').mode = 'ACTIVE'
+        layout.separator()
+        layout.operator("armature.ap_clear")
 
 
 class VIEW3D_MT_target_menu(bpy.types.Menu):
