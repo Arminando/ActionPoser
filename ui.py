@@ -1,7 +1,7 @@
 import bpy
 from bpy.types import Context, Panel, UIList
 
-from . utilities import is_valid_path, map_channel_enum, normalize_min_max, mapped_value
+from . utilities import is_valid_path
 
 class ActionPoserPanel(Panel):
     bl_space_type = 'VIEW_3D'
@@ -96,7 +96,7 @@ class VIEW3D_PT_action_poser_pose(ActionPoserPanel):
                     row = layout.row()
                     row.prop(active_pose, 'transform_min')
                     row.prop(active_pose, 'transform_max')
-            elif active_pose.type == 'CORRECTIVE':
+            elif active_pose.type == 'COMBO':
                 col.label(text = 'Poses to Correct')
                 col.prop_search(active_pose, 'corr_pose_A', armature, 'ap_poses')
                 col.prop_search(active_pose, 'corr_pose_B', armature, 'ap_poses')
@@ -206,7 +206,7 @@ class VIEW3D_PT_action_poser_prefs(ActionPoserPanel):
         col.prop(prefs, 'left_suffix')
         col.prop(prefs, 'right_suffix')
         col.prop(prefs, 'pose_prefix')
-        col.prop(prefs, 'corrective_prefix')
+        col.prop(prefs, 'combo_prefix')
         col.prop(prefs, 'default_name')
 
 
@@ -216,24 +216,13 @@ class VIEW3D_UL_actions_list(UIList):
         
         row = layout.row()
         split = row.split(factor=0.85)
-        if item.type == 'CORRECTIVE':
+        if item.type == 'COMBO':
             icon = 'PLUS'
         else:
             icon = 'NONE'
         split.prop(item, "name", text="", icon=icon)
         
-        if item.type == 'POSE':
-            try:
-                split.label(text=str(mapped_value(item)))
-            except:
-                split.label(text='?')
-        elif item.type == 'CORRECTIVE':
-            try:
-                value1 = mapped_value(data.ap_poses[item.corr_pose_A])
-                value2 = mapped_value(data.ap_poses[item.corr_pose_B])
-                split.label(text=str(min(value1, value2)))
-            except:
-                split.label(text='?')
+        split.label(text=str("%.2f" % item.influence))
         
         if item.build:
             icon = 'HIDE_OFF'
@@ -241,7 +230,6 @@ class VIEW3D_UL_actions_list(UIList):
             icon = 'HIDE_ON'
         row.prop(item, 'build', icon=icon, text='')
                 
-
 
 class VIEW3D_MT_poses_menu(bpy.types.Menu):
     bl_label = 'Additional Operators'
@@ -252,6 +240,11 @@ class VIEW3D_MT_poses_menu(bpy.types.Menu):
 
         layout.operator("armature.ap_pose_move", icon='ANCHOR_TOP', text="Move to Top").direction = 'TOP'
         layout.operator("armature.ap_pose_move", icon='ANCHOR_BOTTOM', text="Move to Bottom").direction = 'BOTTOM'
+        layout.separator()
+        layout.operator("armature.ap_copy", text = 'Copy All to Selected').mode = 'ALL'
+        layout.operator("armature.ap_copy", text = 'Copy Active to Selected').mode = 'ACTIVE'
+        layout.separator()
+        layout.operator("armature.ap_clear")
 
 
 class VIEW3D_MT_target_menu(bpy.types.Menu):
