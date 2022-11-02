@@ -11,10 +11,9 @@ bl_info = {
     "description": "Action constraint based rigging",
     "author": "Armin Halac",
     "blender": (3, 1, 0),
-    "version": (0, 1, 0),
+    "version": (1, 0, 0),
     "category": "Rigging",
     "location": "Side Panel (N) -> Rig Tools",
-    "warning": "Still in development",
     "wiki_url": "https://github.com/Arminando/ActionPoser",
     "doc_url": "https://github.com/Arminando/ActionPoser",
 }
