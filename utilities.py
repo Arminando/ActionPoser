@@ -196,40 +196,6 @@ def reset_bone_transforms(name: str) -> None:
     pose_bone.rotation_quaternion = (1.0, 0.0, 0.0, 0.0)
     pose_bone.scale = (1.0, 1.0, 1.0)
 
-def map_channel_enum(channel: str) -> list:
-    
-    dict = {'LOCATION_X': ('location', 0),
-            'LOCATION_Y': ('location', 1),
-            'LOCATION_Z': ('location', 2),
-            'ROTATION_X': ('rotation', 0),
-            'ROTATION_Y': ('rotation', 1),
-            'ROTATION_Z': ('rotation', 2),
-            'SCALE_X': ('scale', 0),
-            'SCALE_Y': ('scale', 1),
-            'SCALE_Z': ('scale', 2)}
-
-    return dict[channel][0], dict[channel][1]
-
-
-def map_channel_driver(channel: str) -> list:
-    
-    dict = {'LOCATION_X': 'LOC_X',
-            'LOCATION_Y': 'LOC_Y',
-            'LOCATION_Z': 'LOC_Z',
-            'ROTATION_X': 'ROT_X',
-            'ROTATION_Y': 'ROT_Y',
-            'ROTATION_Z': 'ROT_Z',
-            'SCALE_X': 'SCALE_X',
-            'SCALE_Y': 'SCALE_Y',
-            'SCALE_Z': 'SCALE_Z'}
-    return dict[channel]
-
-def map_space_driver(space: str) -> list:
-    
-    dict = {'LOCAL': 'LOCAL_SPACE',
-            'WORLD': 'WORLD_SPACE'}
-    return dict[space]
-
 
 def normalize_min_max(value: float, value_min: float, value_max: float) -> float:
         return max(0.0, (value - value_min) / (value_max - value_min))
@@ -276,8 +242,10 @@ def add_driver_influence(pose):
     if pose.target_type == 'BONE':
         variable.type = 'TRANSFORMS'
         variable.targets[0].bone_target = pose.bone
-        variable.targets[0].transform_type = map_channel_driver(pose.channel)
-        variable.targets[0].transform_space = map_space_driver(pose.space)
+        variable.targets[0].transform_type = pose.channel
+        variable.targets[0].transform_space = pose.space
+        if 'ROT' in pose.channel:
+            variable.targets[0].rotation_mode = pose.rot_mode
     elif pose.target_type == 'PROP':
         variable.targets[0].data_path = pose.data_path
     

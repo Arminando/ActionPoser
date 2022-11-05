@@ -84,6 +84,8 @@ class VIEW3D_PT_action_poser_pose(ActionPoserPanel):
                         if active_pose.bone:
                             col = layout.column()
                             col.prop(active_pose, 'channel')
+                            if 'ROT' in active_pose.channel:
+                                col.prop(active_pose, 'rot_mode')
                             col.prop(active_pose, 'space')
                             col.prop(active_pose, 'mix')
 
