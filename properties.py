@@ -1,4 +1,3 @@
-from email.policy import default
 import bpy
 from . utilities import poll_is_armature_object, update_ap_poses_index
 
@@ -9,7 +8,7 @@ class APBones(bpy.types.PropertyGroup):
 class APPoses(bpy.types.PropertyGroup):
     name : bpy.props.StringProperty(name="Pose Name", default="",description="Name of pose")
     build : bpy.props.BoolProperty(name="Build", default = True, description="Exclude pose when build is executed")
-    type : bpy.props.EnumProperty(name='Type', description='Type of action pose', items={('POSE', 'Pose', 'Pose', 0), ('CORRECTIVE', 'Corrective', 'Corrective', 1)}, default='POSE')
+    type : bpy.props.EnumProperty(name='Type', description='Type of action pose', items={('POSE', 'Pose', 'Pose', 0), ('COMBO', 'Combo', 'Combo', 1)}, default='POSE')
     target_type : bpy.props.EnumProperty(name='Target Type', description='Choose if the pose will be driven by a property or bone transform', items={('BONE', 'Bone', 'Bone', 0), ('PROP', 'Property', 'Property', 1)}, default='BONE')
 
     # Pose type
@@ -37,12 +36,14 @@ class APPoses(bpy.types.PropertyGroup):
     transform_min : bpy.props.FloatProperty(name='Min', default = 0.0, description='Starting value for the driver', precision=4)
     transform_max : bpy.props.FloatProperty(name='Max', default = 1.0, description='Finishing value for the driver', precision=4)
 
-    corr_pose_A : bpy.props.StringProperty(name='Pose A', description='Pose that will trigger the corrective')
-    corr_pose_B : bpy.props.StringProperty(name='Pose B', description='Pose that will trigger the corrective')
+    corr_pose_A : bpy.props.StringProperty(name='Pose A', description='Pose that will trigger the combo')
+    corr_pose_B : bpy.props.StringProperty(name='Pose B', description='Pose that will trigger the combo')
 
     action : bpy.props.PointerProperty(type=bpy.types.Action, name='Action', description='Target action')
     start_frame : bpy.props.IntProperty(name='Start Frame', default = 0, description='Start frame for the action')
     end_frame : bpy.props.IntProperty(name='End Frame', default = 10, description='End frame for the action')
+
+    influence : bpy.props.FloatProperty(name='Influence', default = 0, min = 0, max = 1)
 
     bones : bpy.props.CollectionProperty(type=APBones)
 
@@ -51,7 +52,7 @@ class APPreferences(bpy.types.PropertyGroup):
     left_suffix : bpy.props.StringProperty(name='Left Suffix', default='.L', description='Set this to the convention you have used on bones')
     right_suffix : bpy.props.StringProperty(name='Right Suffix', default='.R', description='Set this to the convention you have used on bones')
     pose_prefix : bpy.props.StringProperty(name='Pose Prefix', default='AP-', description='Prefix that will be added when creating a new pose action')
-    corrective_prefix : bpy.props.StringProperty(name='Corrective Prefix', default='AC-', description='Prefix that will be added when creating a new corrective action')
+    combo_prefix : bpy.props.StringProperty(name='Combo Prefix', default='AC-', description='Prefix that will be added when creating a new combo action')
     default_name : bpy.props.StringProperty(name='Default Name', default='Pose', description='Defines how new poses will be named')
 
 

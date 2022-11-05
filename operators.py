@@ -46,10 +46,8 @@ class DATA_OT_ap_purge(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        armature = context.active_object.data
-        ap_poses = armature.ap_poses
-
-        return context.mode == 'POSE' and ap_poses
+        
+        return context.mode == 'POSE'
 
     def execute(self, context):
         armature = context.active_object.data
@@ -92,7 +90,7 @@ class DATA_OT_ap_action_edit(bpy.types.Operator):
             ap_state.active_object = obj.name
 
             # Active action store
-            if obj.animation_data.action:
+            if obj.animation_data and obj.animation_data.action:
                 ap_state.active_action = obj.animation_data.action.name
             
             # Selected bones store
@@ -132,9 +130,16 @@ class DATA_OT_ap_action_edit(bpy.types.Operator):
             # Disable constraints
             disable_pose_constraints()
             
-            if ap_pose.type == 'CORRECTIVE':
-                create_pose(armature.ap_poses[ap_pose.corr_pose_A], for_edit=True)
-                create_pose(armature.ap_poses[ap_pose.corr_pose_B], for_edit=True)
+            # Recursive enabling of combo poses.
+            # Needed so that the edit combines all poses that go into combos+combos
+            if ap_pose.type == 'COMBO':
+                nested_pose_list = [ap_pose.corr_pose_A, ap_pose.corr_pose_B]
+                while nested_pose_list:
+                    pose = armature.ap_poses[nested_pose_list.pop(0)]
+                    if pose.type == 'COMBO':
+                        nested_pose_list.append(pose.corr_pose_A)
+                        nested_pose_list.append(pose.corr_pose_B)
+                    create_pose(pose, for_edit=True)
             self.report({'INFO'}, 'Action Edit engaged')
 
         else:
@@ -194,10 +199,68 @@ class DATA_OT_ap_action_edit(bpy.types.Operator):
 
         return {'FINISHED'}
 
+class DATA_OT_ap_copy(bpy.types.Operator):
+    bl_idname = "armature.ap_copy"
+    bl_label = "Copy to Selected"
+    bl_description = "Copy Action Poses data from active to selected"
+    bl_options = {"REGISTER", "UNDO"}
+
+    mode : bpy.props.EnumProperty(name='Mode', description='Choose copy mode', items={('ALL', 'All', 'All', 0), ('ACTIVE', 'Active', 'Active', 1)}, default='ALL')
+
+    @classmethod
+    def poll(cls, context):
+
+        return context.mode == 'POSE' and context.active_object and len(context.selected_objects)>=2
+
+    def execute(self, context):
+        source_obj = context.active_object
+        target_objs = context.selected_objects
+        target_objs.remove(source_obj)
+
+        source = source_obj.data.ap_poses
+
+        for target_obj in target_objs:
+            target = target_obj.data.ap_poses
+
+            if self.mode=='ALL':
+                for source_pose in source:
+                    pose = target.add()
+                    for k, v in source_pose.items():
+                        pose[k] = v
+            elif self.mode=='ACTIVE':
+                source_pose_index = source_obj.data.ap_poses_index
+                pose = target.add()
+                for k,v in source_obj.data.ap_poses[source_pose_index].items():
+                    pose[k] = v
+
+        self.report({'INFO'}, 'Poses Copied Successfully')
+        return {'FINISHED'}
+
+
+class DATA_OT_ap_clear(bpy.types.Operator):
+    bl_idname = "armature.ap_clear"
+    bl_label = "Delete All"
+    bl_description = "Remove all Action Poses"
+    bl_options = {"REGISTER", "UNDO"}
+
+
+    @classmethod
+    def poll(cls, context):
+
+        return context.mode == 'POSE' and context.active_object
+
+    def execute(self, context):
+        context.active_object.data.ap_poses.clear()
+
+        self.report({'INFO'}, 'Poses Deleted Successfully')
+        return {'FINISHED'}
+
 classes = [
     DATA_OT_ap_execute,
     DATA_OT_ap_purge,
     DATA_OT_ap_action_edit,
+    DATA_OT_ap_copy,
+    DATA_OT_ap_clear,
 ]
 
 register, unregister = bpy.utils.register_classes_factory(classes)
