@@ -46,10 +46,8 @@ class DATA_OT_ap_purge(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        armature = context.active_object.data
-        ap_poses = armature.ap_poses
-
-        return context.mode == 'POSE' and ap_poses
+        
+        return context.mode == 'POSE'
 
     def execute(self, context):
         armature = context.active_object.data
@@ -92,7 +90,7 @@ class DATA_OT_ap_action_edit(bpy.types.Operator):
             ap_state.active_object = obj.name
 
             # Active action store
-            if obj.animation_data.action:
+            if obj.animation_data and obj.animation_data.action:
                 ap_state.active_action = obj.animation_data.action.name
             
             # Selected bones store

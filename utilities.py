@@ -280,8 +280,11 @@ def add_driver_influence(pose):
         variable.targets[0].transform_space = map_space_driver(pose.space)
     elif pose.target_type == 'PROP':
         variable.targets[0].data_path = pose.data_path
-
-    driver.expression = '(driver - ' + str(pose.transform_min) + ') / (' + str(pose.transform_max) + ' - ' + str(pose.transform_min) + ')'
+    
+    driver_str = '(driver - '
+    if 'ROT' in pose.channel:
+        driver_str = '(degrees(driver) - '
+    driver.expression = driver_str + str(pose.transform_min) + ') / (' + str(pose.transform_max) + ' - ' + str(pose.transform_min) + ')'
 
     return driver
 
