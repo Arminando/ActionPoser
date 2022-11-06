@@ -33,7 +33,7 @@ def is_valid_pose(pose):
         else:
             if not is_valid_path(pose): return False
 
-    if not pose.action: return False
+    # if not pose.action: return False # Removed this one so that a driver will still be created for the influence regardless of the missing action.
     
     return True
 

@@ -112,9 +112,6 @@ class VIEW3D_PT_action_poser_driver(ActionPoserPanel):
                 col.separator()
                 col.prop(active_pose, 'mix')
 
-            else:
-                col.label(text='Feature not implemented yet. Have a nice day.')
-
             
 class VIEW3D_PT_action_poser_action(ActionPoserPanel):
     bl_parent_id = "VIEW3D_PT_action_poser"
@@ -222,14 +219,14 @@ class VIEW3D_UL_actions_list(UIList):
         layout.use_property_split = False
         
         row = layout.row()
-        split = row.split(factor=0.85)
+        split = row.split(factor=0.80)
         if item.type == 'COMBO':
             icon = 'PLUS'
         else:
             icon = 'NONE'
-        split.prop(item, "name", text="", icon=icon)
+        split.prop(item, "name", text="", icon=icon, emboss = False)
         
-        split.label(text=str("%.2f" % item.influence))
+        split.prop(item, "influence", text="")
         
         if item.build:
             icon = 'HIDE_OFF'
