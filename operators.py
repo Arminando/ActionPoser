@@ -177,12 +177,18 @@ class DATA_OT_ap_action_edit(bpy.types.Operator):
                 bone.scale = ap_bone_transforms[bone.name].scale
             if ap_state.selected_bones:
                 for bone in ap_state.selected_bones:
-                    armature_pose.bones[bone.name].bone.select = True
+                    try:
+                        armature_pose.bones[bone.name].bone.select = True
+                    except:
+                        print("Bone could not be selected: " + bone.name)
             ap_state.selected_bones.clear()
 
             # Active bone restore
             if ap_state.active_bone:
-                armature.bones.active = armature.bones[ap_state.active_bone]
+                try:
+                    armature.bones.active = armature.bones[ap_state.active_bone]
+                except:
+                    print("Bone could not be made active: " + bone.name)
             ap_state.active_bone = ""
 
             # Bone transforms clear
