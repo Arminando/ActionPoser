@@ -53,14 +53,16 @@ class DATA_OT_ap_pose_remove(bpy.types.Operator):
 
 PROPERTIES = [
                 'name',
+                'build',
                 'type',
                 'target_type',
                 'target',
                 'bone',
                 'data_path',
                 'channel',
-                'space',
                 'mix',
+                'space',
+                'rot_mode',
                 'transform_min',
                 'transform_max',
                 'action',
@@ -125,7 +127,6 @@ class DATA_OT_ap_pose_mirror(bpy.types.Operator):
     def execute(self, context):
         new_pose = context.active_object.data.ap_poses.add()
         old_pose = context.active_object.data.ap_poses[self.idx]
-
         for prop in PROPERTIES:
             setattr(new_pose, prop, getattr(old_pose, prop))
 
