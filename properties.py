@@ -9,44 +9,50 @@ class APPoses(bpy.types.PropertyGroup):
     name : bpy.props.StringProperty(name="Pose Name", default="",description="Name of pose")
     build : bpy.props.BoolProperty(name="Build", default = True, description="Exclude pose when build is executed")
     type : bpy.props.EnumProperty(name='Type', description='Type of action pose', items={('POSE', 'Pose', 'Pose', 0), ('COMBO', 'Combo', 'Combo', 1)}, default='POSE')
-    target_type : bpy.props.EnumProperty(name='Target Type', description='Choose if the pose will be driven by a property or bone transform', items={('BONE', 'Bone', 'Bone', 0), ('PROP', 'Property', 'Property', 1)}, default='BONE')
+    target_type : bpy.props.EnumProperty(name='Driver Property', description='Choose if the pose will be driven by a property or bone transform', items={('BONE', 'Channel', 'Channel', 0), ('PROP', 'Path', 'Path', 1)}, default='BONE')
 
     # Pose type
     target : bpy.props.PointerProperty(type=bpy.types.Object, poll=poll_is_armature_object, name='Target', description='Target object')
     bone : bpy.props.StringProperty(name='Bone', default='', description='Target bone that will be the shape driver')
     data_path : bpy.props.StringProperty(name='Path', default='', description='Target path that will be the shape driver')
-    channel : bpy.props.EnumProperty(name='Channel', description='Bone channel that will drive the action', items={
+    channel : bpy.props.EnumProperty(name='Channel', description='Bone channel that will drive the action', items=(
                                                                                                                     ('LOC_X', 'Location X', 'Location X', 0),
                                                                                                                     ('LOC_Y', 'Location Y', 'Location Y', 1),
                                                                                                                     ('LOC_Z', 'Location Z', 'Location Z', 2),
+                                                                                                                    None,
                                                                                                                     ('ROT_X', 'Rotation X', 'Rotation X', 3),
                                                                                                                     ('ROT_Y', 'Rotation Y', 'Rotation Y', 4),
                                                                                                                     ('ROT_Z', 'Rotation Z', 'Rotation Z', 5),
-                                                                                                                    ('ROT_W', 'Rotation Z', 'Rotation Z', 6),
+                                                                                                                    ('ROT_W', 'Rotation W', 'Rotation W', 6),
+                                                                                                                    None,
                                                                                                                     ('SCALE_X', 'Scale X', 'Scale X', 7),
                                                                                                                     ('SCALE_Y', 'Scale Y', 'Scale Y', 8),
                                                                                                                     ('SCALE_Z', 'Scale Z', 'Scale Z', 9),
-                                                                                                                    ('SCALE_AVG', 'Scale Z', 'Scale Z', 10),})
-    mix : bpy.props.EnumProperty(name='Mix', description='How the constraint will be applied.', items={
+                                                                                                                    ('SCALE_AVG', 'Average Scale', 'Average Scale', 10)))
+    mix : bpy.props.EnumProperty(name='Mix', description='How the constraint will be applied.', items=(
                                                                                                                     ('BEFORE_FULL', 'Before Original(Full)', 'Before Original(Full)', 0),
                                                                                                                     ('BEFORE', 'Before Original(Aligned)', 'Before Original(Aligned)', 1),
                                                                                                                     ('BEFORE_SPLIT', 'Before Original(Split Channels)', 'Before Original(Split Channels)', 2),
+                                                                                                                    None,
                                                                                                                     ('AFTER_FULL', 'After Original (Full)', 'After Original (Full)', 3),
                                                                                                                     ('AFTER', 'After Original (Aligned)', 'After Original (Aligned)', 4),
-                                                                                                                    ('AFTER_SPLIT', 'After Original (Split Channels)', 'After Original (Split Channels)', 5)}, default='BEFORE_FULL')
+                                                                                                                    ('AFTER_SPLIT', 'After Original (Split Channels)', 'After Original (Split Channels)', 5)), default='BEFORE_FULL')
     space : bpy.props.EnumProperty(name='Space', description='Choose which space to use for driver transform', items={('LOCAL_SPACE', 'Local', 'Local Space', 0), ('WORLD_SPACE', 'World', 'World', 1), ('TRANSFORM_SPACE', 'Transform', 'Transform', 1)}, default='LOCAL_SPACE')
-    rot_mode : bpy.props.EnumProperty(name='Mode', description='Choose rotation mode', items={
+    rot_mode : bpy.props.EnumProperty(name='Mode', description='Choose rotation mode', items=(
                                                                                                                     ('AUTO', 'Auto Euler', 'Auto Euler', 0),
+                                                                                                                    None,
                                                                                                                     ('XYZ', 'XYZ Euler', 'XYZ Euler', 1),
                                                                                                                     ('XZY', 'XZY Euler', 'XZY Euler', 2),
                                                                                                                     ('YXZ', 'YXZ Euler', 'YXZ Euler', 3),
                                                                                                                     ('YZX', 'YZX Euler', 'YZX Euler', 4),
                                                                                                                     ('ZXY', 'ZXY Euler', 'ZXY Euler', 5),
                                                                                                                     ('ZYX', 'ZYX Euler', 'ZYX Euler', 6),
+                                                                                                                    None,
                                                                                                                     ('QUATERNION', 'Quaternion', 'Quaternion', 7),
+                                                                                                                    None,
                                                                                                                     ('SWING_TWIST_X', 'Swing and X Twist', 'Swing and X Twist', 8),
                                                                                                                     ('SWING_TWIST_Y', 'Swing and Y Twist', 'Swing and Y Twist', 9),
-                                                                                                                    ('SWING_TWIST_Z', 'Swing and Z Twist', 'Swing and Z Twist', 10)})
+                                                                                                                    ('SWING_TWIST_Z', 'Swing and Z Twist', 'Swing and Z Twist', 10)))
     transform_min : bpy.props.FloatProperty(name='Min', default = 0.0, description='Starting value for the driver', precision=4)
     transform_max : bpy.props.FloatProperty(name='Max', default = 1.0, description='Finishing value for the driver', precision=4)
 

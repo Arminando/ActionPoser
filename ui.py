@@ -6,15 +6,25 @@ from . utilities import is_valid_path
 class ActionPoserPanel(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
+    bl_parent_id = "VIEW3D_PT_action_poser"
     bl_category = "Rig Tools"
 
     @classmethod
     def poll(cls, context):
         return context.active_object and context.active_object.type == 'ARMATURE' and context.mode == 'POSE'
 
-
-class VIEW3D_PT_action_poser(ActionPoserPanel):
+class VIEW3D_PT_action_poser(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = "Rig Tools"
     bl_label = 'Action Poser'
+    
+    def draw(self, context: Context) -> None:
+        pass
+
+
+class VIEW3D_PT_action_poses(ActionPoserPanel):
+    bl_label = 'Poses'
 
     def draw(self, context: Context) -> None:
         layout = self.layout
@@ -42,9 +52,8 @@ class VIEW3D_PT_action_poser(ActionPoserPanel):
         row.operator('armature.ap_purge', icon='X')
 
 
-class VIEW3D_PT_action_poser_pose(ActionPoserPanel):
-    bl_parent_id = "VIEW3D_PT_action_poser"
-    bl_label = "Pose"
+class VIEW3D_PT_action_poser_driver(ActionPoserPanel):
+    bl_label = "Driver"
 
     def draw(self, context: Context) -> None:
         scene = context.scene
@@ -66,7 +75,7 @@ class VIEW3D_PT_action_poser_pose(ActionPoserPanel):
             col.separator()
 
             if active_pose.type == 'POSE':
-                col.label(text = 'Pose Driver Settings')
+                col.separator()
                 row = col.row()
                 row.prop(active_pose, 'target')
                 row.menu("VIEW3D_MT_target_menu", icon='DOWNARROW_HLT', text="")
@@ -94,12 +103,10 @@ class VIEW3D_PT_action_poser_pose(ActionPoserPanel):
                         col.alert = not is_valid_path(active_pose)
                         col.prop(active_pose, 'data_path', icon='RNA')
 
-                    layout.use_property_split = False
-                    row = layout.row()
-                    row.prop(active_pose, 'transform_min')
-                    row.prop(active_pose, 'transform_max')
+                    col.prop(active_pose, 'transform_min')
+                    col.prop(active_pose, 'transform_max')
             elif active_pose.type == 'COMBO':
-                col.label(text = 'Poses to Correct')
+                col.separator()
                 col.prop_search(active_pose, 'corr_pose_A', armature, 'ap_poses')
                 col.prop_search(active_pose, 'corr_pose_B', armature, 'ap_poses')
                 col.separator()
@@ -127,23 +134,6 @@ class VIEW3D_PT_action_poser_action(ActionPoserPanel):
             layout.use_property_split = True
             layout.use_property_decorate = False
 
-            row = layout.row(align=True)
-            
-            row.prop(active_pose, 'action', text='')
-            if active_pose.action:
-                row.prop(active_pose.action, 'use_fake_user', text='')
-            
-            row.separator()
-            row.operator("armature.ap_action_new", icon='FILE_NEW', text="").idx = armature.ap_poses_index
-            row.operator("armature.ap_action_duplicate", icon='DUPLICATE', text="").idx = armature.ap_poses_index
-            row.menu("VIEW3D_MT_action_menu", icon='DOWNARROW_HLT', text="")
-
-
-            layout.use_property_split = False
-            row = layout.row()
-            row.prop(active_pose, 'start_frame')
-            row.prop(active_pose, 'end_frame')
-
             if active_pose.action:
                 if not armature.ap_state.editing:
                     label = "Edit Action"
@@ -153,12 +143,27 @@ class VIEW3D_PT_action_poser_action(ActionPoserPanel):
                 col.alert = armature.ap_state.editing
                 
                 col.operator("armature.ap_action_edit", icon='ACTION_TWEAK', text=label).idx = armature.ap_poses_index
+            row = layout.row(align=True)
+            
+            row.prop(active_pose, 'action', text='')
+            if active_pose.action:
+                row.prop(active_pose.action, 'use_fake_user', text='')
+            
+            row.separator()
+            row.menu("VIEW3D_MT_action_menu", icon='DOWNARROW_HLT', text="")
+
+
+            col = layout.column()
+            col.prop(active_pose, 'start_frame', text="Frame Start")
+            col.prop(active_pose, 'end_frame', text = 'End')
+
+
                 
 
 
-class VIEW3D_PT_action_poser_bones(ActionPoserPanel):
+class VIEW3D_PT_action_poser_targets(ActionPoserPanel):
     bl_parent_id = "VIEW3D_PT_action_poser"
-    bl_label = "Bones"
+    bl_label = "Target Bones"
 
     def draw(self, context: Context) -> None:
         scene = context.scene
@@ -267,6 +272,9 @@ class VIEW3D_MT_action_menu(bpy.types.Menu):
         layout = self.layout
         armature = context.active_object.data
 
+        layout.operator("armature.ap_action_new", icon='FILE_NEW').idx = armature.ap_poses_index
+        layout.operator("armature.ap_action_duplicate", icon='DUPLICATE').idx = armature.ap_poses_index
+        layout.separator()
         layout.operator("armature.ap_action_rename", icon='FONT_DATA')
         layout.operator('armature.ap_remove_flat_curves', icon='NOCURVE').idx = armature.ap_poses_index
         layout.separator()
@@ -348,9 +356,10 @@ classes = [
     VIEW3D_PT_action_poser,
     VIEW3D_UL_actions_list,
     VIEW3D_UL_bones_list,
-    VIEW3D_PT_action_poser_pose,
+    VIEW3D_PT_action_poses,
+    VIEW3D_PT_action_poser_driver,
     VIEW3D_PT_action_poser_action,
-    VIEW3D_PT_action_poser_bones,
+    VIEW3D_PT_action_poser_targets,
     VIEW3D_PT_action_poser_prefs,
 ]
 
