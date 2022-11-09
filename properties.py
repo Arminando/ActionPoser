@@ -37,7 +37,7 @@ class APPoses(bpy.types.PropertyGroup):
                                                                                                                     ('AFTER_FULL', 'After Original (Full)', 'After Original (Full)', 3),
                                                                                                                     ('AFTER', 'After Original (Aligned)', 'After Original (Aligned)', 4),
                                                                                                                     ('AFTER_SPLIT', 'After Original (Split Channels)', 'After Original (Split Channels)', 5)), default='BEFORE_FULL')
-    space : bpy.props.EnumProperty(name='Space', description='Choose which space to use for driver transform', items={('LOCAL_SPACE', 'Local', 'Local Space', 0), ('WORLD_SPACE', 'World', 'World', 1), ('TRANSFORM_SPACE', 'Transform', 'Transform', 1)}, default='LOCAL_SPACE')
+    space : bpy.props.EnumProperty(name='Space', description='Choose which space to use for driver transform', items={('LOCAL_SPACE', 'Local', 'Local Space', 0), ('WORLD_SPACE', 'World', 'World', 1), ('TRANSFORM_SPACE', 'Transform', 'Transform', 2)}, default='LOCAL_SPACE')
     rot_mode : bpy.props.EnumProperty(name='Mode', description='Choose rotation mode', items=(
                                                                                                                     ('AUTO', 'Auto Euler', 'Auto Euler', 0),
                                                                                                                     None,

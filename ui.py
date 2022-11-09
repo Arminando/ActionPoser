@@ -219,7 +219,7 @@ class VIEW3D_UL_actions_list(UIList):
         layout.use_property_split = False
         
         row = layout.row()
-        split = row.split(factor=0.80)
+        split = row.split(factor=0.65)
         if item.type == 'COMBO':
             icon = 'PLUS'
         else:
