@@ -37,7 +37,7 @@ class APPoses(bpy.types.PropertyGroup):
                                                                                                                     ('AFTER_FULL', 'After Original (Full)', 'After Original (Full)', 3),
                                                                                                                     ('AFTER', 'After Original (Aligned)', 'After Original (Aligned)', 4),
                                                                                                                     ('AFTER_SPLIT', 'After Original (Split Channels)', 'After Original (Split Channels)', 5)), default='BEFORE_FULL')
-    space : bpy.props.EnumProperty(name='Space', description='Choose which space to use for driver transform', items={('LOCAL_SPACE', 'Local', 'Local Space', 0), ('WORLD_SPACE', 'World', 'World', 1), ('TRANSFORM_SPACE', 'Transform', 'Transform', 2)}, default='LOCAL_SPACE')
+    space : bpy.props.EnumProperty(name='Space', description='Choose which space to use for driver transform', items=(('LOCAL_SPACE', 'Local', 'Local Space', 0), ('WORLD_SPACE', 'World', 'World', 1), ('TRANSFORM_SPACE', 'Transform', 'Transform', 2)), default='LOCAL_SPACE')
     rot_mode : bpy.props.EnumProperty(name='Mode', description='Choose rotation mode', items=(
                                                                                                                     ('AUTO', 'Auto Euler', 'Auto Euler', 0),
                                                                                                                     None,
@@ -118,6 +118,8 @@ def register():
     bpy.types.Scene.ap_preferences = bpy.props.PointerProperty(type=APPreferences)
     bpy.types.Armature.ap_poses_index = bpy.props.IntProperty(default=-1, update = update_ap_poses_index)
     bpy.types.Armature.ap_bones_index = bpy.props.IntProperty(default=-1)
+    bpy.types.Armature.ap_targets = bpy.props.EnumProperty(name='Targets', description='Choose which target type to display', items=(('BONES', 'Bones', 'Bone targets', 0), ('SHAPE_KEYS', 'Shape Keys', 'Shape Key Targets', 1)), default='BONES')
+
 
 def unregister():
     from bpy.utils import unregister_class

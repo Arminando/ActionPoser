@@ -160,7 +160,7 @@ class VIEW3D_PT_action_poser_action(ActionPoserPanel):
 
 class VIEW3D_PT_action_poser_targets(ActionPoserPanel):
     bl_parent_id = "VIEW3D_PT_action_poser"
-    bl_label = "Target Bones"
+    bl_label = "Targets"
 
     def draw(self, context: Context) -> None:
         scene = context.scene
@@ -173,23 +173,28 @@ class VIEW3D_PT_action_poser_targets(ActionPoserPanel):
             active_pose = None
 
         if active_pose:
+            layout.prop(armature, 'ap_targets', expand = True)
+
             layout.use_property_split = True
             layout.use_property_decorate = False
 
-            row = layout.row()
-            row.template_list("VIEW3D_UL_bones_list", "", active_pose, "bones", armature, "ap_bones_index")
+            if armature.ap_targets == 'BONES':
+                row = layout.row()
+                row.template_list("VIEW3D_UL_bones_list", "", active_pose, "bones", armature, "ap_bones_index")
 
-            col = row.column(align=True)
-            col.operator("armature.ap_bone_add", icon='ADD', text="").idx = armature.ap_poses_index
-            op = col.operator("armature.ap_bone_remove", icon='REMOVE', text="")
-            op.idx = armature.ap_poses_index
-            op.bone_idx = armature.ap_bones_index
-            col.separator()
-            col.operator("armature.ap_bone_add_selected", icon='SELECT_EXTEND', text="").idx = armature.ap_poses_index
-            col.operator("armature.ap_bone_remove_selected", icon='SELECT_SUBTRACT', text="").idx = armature.ap_poses_index
-            col.operator("armature.ap_bone_add_from_action", icon='ACTION_TWEAK', text="").mode = 'ADD'
-            col.separator()
-            col.menu("VIEW3D_MT_bones_menu", icon='DOWNARROW_HLT', text="")
+                col = row.column(align=True)
+                col.operator("armature.ap_bone_add", icon='ADD', text="").idx = armature.ap_poses_index
+                op = col.operator("armature.ap_bone_remove", icon='REMOVE', text="")
+                op.idx = armature.ap_poses_index
+                op.bone_idx = armature.ap_bones_index
+                col.separator()
+                col.operator("armature.ap_bone_add_selected", icon='SELECT_EXTEND', text="").idx = armature.ap_poses_index
+                col.operator("armature.ap_bone_remove_selected", icon='SELECT_SUBTRACT', text="").idx = armature.ap_poses_index
+                col.operator("armature.ap_bone_add_from_action", icon='ACTION_TWEAK', text="").mode = 'ADD'
+                col.separator()
+                col.menu("VIEW3D_MT_bones_menu", icon='DOWNARROW_HLT', text="")
+            elif armature.ap_targets == 'SHAPE_KEYS':
+                layout.label(text='radi')
 
 
 class VIEW3D_PT_action_poser_prefs(ActionPoserPanel):
