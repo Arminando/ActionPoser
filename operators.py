@@ -1,11 +1,10 @@
 import bpy
 from . utilities import (is_valid_pose,
-                        purge_poses,
-                        create_pose,
-                        enable_pose_constraints,
-                        disable_pose_constraints,
-                        reset_bone_transforms,
-                        delete_temp_constraints)
+                         purge_poses,
+                         create_pose,
+                         toggle_pose_constraints,
+                         reset_bone_transforms,
+                         delete_temp_constraints)
 
 class DATA_OT_ap_execute(bpy.types.Operator):
     bl_idname = "armature.ap_execute"
@@ -128,7 +127,7 @@ class DATA_OT_ap_action_edit(bpy.types.Operator):
             context.scene.tool_settings.use_keyframe_insert_auto = True
 
             # Disable constraints
-            disable_pose_constraints()
+            toggle_pose_constraints(False)
             
             # Recursive enabling of combo poses.
             # Needed so that the edit combines all poses that go into combos+combos
@@ -196,7 +195,7 @@ class DATA_OT_ap_action_edit(bpy.types.Operator):
 
             # Enable Constraints
             delete_temp_constraints()
-            enable_pose_constraints()
+            toggle_pose_constraints(True)
 
             #Autokey restore
             context.scene.tool_settings.use_keyframe_insert_auto = ap_state.autokey

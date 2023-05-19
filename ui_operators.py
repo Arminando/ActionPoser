@@ -1,10 +1,9 @@
 import bpy
 from . utilities import (find_opposite_bone_name,
-                        find_opposite_object_name,
-                        find_opposite_action_name, find_opposite_pose_name,
-                        swap_side_suffix,
-                        disable_pose_constraints,
-                        enable_pose_constraints)
+                         find_opposite_object_name,
+                         find_opposite_action_name, find_opposite_pose_name,
+                         swap_side_suffix,
+                         )
 
 class DATA_OT_ap_pose_add(bpy.types.Operator):
     bl_idname = "armature.ap_pose_add"
