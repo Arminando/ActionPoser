@@ -218,6 +218,8 @@ def add_driver_combo(pose: bpy.types.PropertyGroup) -> bpy.types.Driver:
     variable_names = ['corrA', 'corrB']
     poses = [pose.corr_pose_A, pose.corr_pose_B]
 
+    # TODO: Can't use the influence property of the poses because it produces a cycle error.
+    #       Replace with a recursive function that takes all the poses and makes one long expression.
     driver = pose.driver_add('influence').driver
     driver.type = 'MIN'
     for i in range(0,2):       

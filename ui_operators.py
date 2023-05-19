@@ -5,27 +5,6 @@ from . utilities import (find_opposite_bone_name,
                          swap_side_suffix,
                          )
 
-class DATA_OT_ap_pose_add(bpy.types.Operator):
-    bl_idname = "armature.ap_pose_add"
-    bl_label = "Add action pose"
-    bl_description = "Creates a new empty pose"
-    bl_options = {"REGISTER", "UNDO"}
-
-    @classmethod
-    def poll(cls, context):
-        return context.mode == 'POSE'
-
-    def execute(self, context):
-        prefs = context.scene.ap_preferences
-        
-        pose = context.active_object.data.ap_poses.add()
-        pose.name = prefs.default_name
-
-        armature = context.active_object.data
-        armature.ap_poses_index = len(armature.ap_poses) - 1
-
-        return {'FINISHED'}
-
 class DATA_OT_ap_pose_remove(bpy.types.Operator):
     bl_idname = "armature.ap_pose_remove"
     bl_label = "Remove action pose"
@@ -450,7 +429,6 @@ class DATA_OT_ap_target_select(bpy.types.Operator):
 
 
 classes = [
-    DATA_OT_ap_pose_add,
     DATA_OT_ap_pose_remove,
     DATA_OT_ap_pose_duplicate,
     DATA_OT_ap_pose_mirror,

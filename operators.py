@@ -6,6 +6,26 @@ from . utilities import (is_valid_pose,
                          reset_bone_transforms,
                          delete_temp_constraints)
 
+class DATA_OT_ap_pose_add(bpy.types.Operator):
+    """Adds a new pose to the armature"""
+    bl_idname = "armature.ap_pose_add"
+    bl_label = "Add Pose"
+    bl_description = "Add a new pose. If no name is provided, the default name will be used."
+    bl_options = {"REGISTER", "UNDO"}
+
+    name: bpy.props.StringProperty()
+    @classmethod
+    def poll(cls, context: bpy.types.Context):
+        return context.mode == 'POSE'
+
+    def execute(self, context: bpy.types.Context):
+        pose = context.active_object.data.ap_poses.add()
+        pose.name = self.name if self.name else context.scene.ap_preferences.default_name
+        context.active_object.data.ap_poses_index = len(context.active_object.data.ap_poses) - 1
+
+        self.report({'INFO'}, 'Pose Added Successfully')
+        return {'FINISHED'}
+
 class DATA_OT_ap_execute(bpy.types.Operator):
     bl_idname = "armature.ap_execute"
     bl_label = "Execute"
@@ -261,6 +281,7 @@ class DATA_OT_ap_clear(bpy.types.Operator):
         return {'FINISHED'}
 
 classes = [
+    DATA_OT_ap_pose_add,
     DATA_OT_ap_execute,
     DATA_OT_ap_purge,
     DATA_OT_ap_action_edit,
