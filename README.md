@@ -1,8 +1,3 @@
-If you use ActionPoser and it saves you time or money, or if you would like to access a whole lot of rigging tutorials, consider joining my Patreon here:
-
-[![Patreon](images/Digital-Patreon-Logo_FieryCoral.png)](https://www.patreon.com/arminhalac)
-
-
 # ActionPoser
 
 ActionPoser is a rigging addon for Blender
