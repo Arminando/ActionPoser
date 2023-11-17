@@ -226,7 +226,7 @@ class VIEW3D_UL_actions_list(UIList):
             icon = 'NONE'
         split.prop(item, "name", text="", icon=icon, emboss = False)
         
-        split.prop(item, "influence", text="")
+        split.prop(item, "influence", text="", slider = True)
         
         if item.build:
             icon = 'HIDE_OFF'

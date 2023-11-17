@@ -103,7 +103,14 @@ def delete_temp_constraints() -> None:
 
         for constraint in constraints:
             if 'AP-edit_mode_temp_constraint' in constraint.name:
+                try:
+                    constraint.driver_remove('eval_time')
+                except:
+                    pass
+                
                 constraints.remove(constraint)
+
+
 
 def create_pose(pose: bpy.types.PropertyGroup, for_edit: bool=False) -> None:
     """Creates the pose. Handles both regular and combo poses."""
@@ -136,17 +143,12 @@ def create_pose(pose: bpy.types.PropertyGroup, for_edit: bool=False) -> None:
         constraint.influence = influence
         constraint.use_eval_time = True
 
-        # Switch for normal pose creation and Edit Action mode pose creation
-        # Difference is that for Edit Action mode, the constraints are always active
-        if not for_edit:
-            # add driver to constraint
-            add_action_driver(pose, constraint, variables)
-        else:
-            constraint.use_eval_time = True
-            constraint.eval_time = 1.0
+        # add driver to constraint
+        add_action_driver(pose, constraint, 'eval_time', variables)
+        if for_edit:
             constraint.name = 'AP-edit_mode_temp_constraint'
 
-        
+    add_action_driver(pose, pose, 'influence', variables)
 
 def find_opposite_bone_name(bone: str) -> str:
     """Returns for the symmetrical bone name."""
@@ -279,15 +281,17 @@ def collect_all_variables(pose: bpy.types.PropertyGroup, variables: dict) -> dic
             variables[var_name]['bone_target'] = pose.bone
             variables[var_name]['transform_type'] = pose.channel
             variables[var_name]['transform_space'] = pose.space
+            variables[var_name]['transform_min'] = pose.transform_min
+            variables[var_name]['transform_max'] = pose.transform_max
             if 'ROT' in pose.channel:
                 variables[var_name]['rot_mode'] = pose.rot_mode
         elif pose.target_type == 'PROP':
             variables[var_name]['data_path'] = pose.data_path
 
-def add_action_driver(pose: bpy.types.PropertyGroup, constraint: bpy.types.ActionConstraint, variables: dict) -> None:
+def add_action_driver(pose: bpy.types.PropertyGroup, target_obj: bpy.types.ActionConstraint, property: str, variables: dict) -> None:
     """Adds a driver to the action constraint with the given variables"""
 
-    driver = constraint.driver_add('eval_time').driver
+    driver = target_obj.driver_add(property).driver
     driver.type = 'SCRIPTED'
 
     expression = 'min('
@@ -304,14 +308,13 @@ def add_action_driver(pose: bpy.types.PropertyGroup, constraint: bpy.types.Actio
             variable.targets[0].transform_space = variables[key]['transform_space']
             if 'rot_mode' in variables[key].keys():
                 variable.targets[0].rotation_mode = variables[key]['rot_mode']
-                print(variables[key]['rot_mode'])
         elif pose.target_type == 'PROP':
             variable.targets[0].data_path = variables[key]['data_path']
 
         var_expression = '( ' + key + ' - '
         if 'ROT' in pose.channel:
             var_expression = '(degrees( ' + key + ') - '
-        expression += var_expression + str(pose.transform_min) + ') / (' + str(pose.transform_max) + ' - ' + str(pose.transform_min) + '), '
+        expression += var_expression + str(variables[key]['transform_min']) + ') / (' + str(variables[key]['transform_max']) + ' - ' + str(variables[key]['transform_min']) + '), '
 
     expression = expression[:-2] + ')'
 
