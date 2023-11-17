@@ -116,10 +116,8 @@ def create_pose(pose: bpy.types.PropertyGroup, for_edit: bool=False) -> None:
     constraint_name = prefs.constraint_prefix + pose.name
     armature[constraint_name] = 0.0
     
-    if pose.type == 'COMBO':
-        add_driver_combo(pose)
-    else:
-        add_driver_influence(pose)
+    variables = {}
+    collect_all_variables(pose, variables)
 
     for ap_bone in ap_bones:
         if ap_bone.bone not in pose_bones:
@@ -141,13 +139,14 @@ def create_pose(pose: bpy.types.PropertyGroup, for_edit: bool=False) -> None:
         # Switch for normal pose creation and Edit Action mode pose creation
         # Difference is that for Edit Action mode, the constraints are always active
         if not for_edit:
-            add_driver_constraint(constraint, pose)
+            # add driver to constraint
+            add_action_driver(pose, constraint, variables)
         else:
             constraint.use_eval_time = True
             constraint.eval_time = 1.0
             constraint.name = 'AP-edit_mode_temp_constraint'
 
-
+        
 
 def find_opposite_bone_name(bone: str) -> str:
     """Returns for the symmetrical bone name."""
@@ -218,8 +217,6 @@ def add_driver_combo(pose: bpy.types.PropertyGroup) -> bpy.types.Driver:
     variable_names = ['corrA', 'corrB']
     poses = [pose.corr_pose_A, pose.corr_pose_B]
 
-    # TODO: Can't use the influence property of the poses because it produces a cycle error.
-    #       Replace with a recursive function that takes all the poses and makes one long expression.
     driver = pose.driver_add('influence').driver
     driver.type = 'MIN'
     for i in range(0,2):       
@@ -264,3 +261,59 @@ def update_ap_poses_index(self, context: bpy.types.Context) -> None:
         bpy.ops.armature.ap_action_edit(idx = armature.ap_poses_index)
         #Enter new action edit with updated action
         bpy.ops.armature.ap_action_edit(idx = armature.ap_poses_index)
+
+def collect_all_variables(pose: bpy.types.PropertyGroup, variables: dict) -> dict:
+    """Collects all the variables to be used in the pose's driver expression."""
+
+    if pose.type == 'COMBO':
+        if not pose.corr_pose_A or not pose.corr_pose_B:
+            return
+        collect_all_variables(bpy.context.active_object.data.ap_poses[pose.corr_pose_A], variables)
+        collect_all_variables(bpy.context.active_object.data.ap_poses[pose.corr_pose_B], variables)
+    else:
+        var_name = "var" + str(len(variables.keys()))
+        variables[var_name] = {}
+        variables[var_name]['target'] = pose.target
+
+        if pose.target_type == 'BONE':
+            variables[var_name]['bone_target'] = pose.bone
+            variables[var_name]['transform_type'] = pose.channel
+            variables[var_name]['transform_space'] = pose.space
+            if 'ROT' in pose.channel:
+                variables[var_name]['rot_mode'] = pose.rot_mode
+        elif pose.target_type == 'PROP':
+            variables[var_name]['data_path'] = pose.data_path
+
+def add_action_driver(pose: bpy.types.PropertyGroup, constraint: bpy.types.ActionConstraint, variables: dict) -> None:
+    """Adds a driver to the action constraint with the given variables"""
+
+    driver = constraint.driver_add('eval_time').driver
+    driver.type = 'SCRIPTED'
+
+    expression = 'min('
+
+    for key in variables.keys():
+        variable = driver.variables.new()
+        variable.name = key
+        variable.targets[0].id = variables[key]['target']
+
+        if pose.target_type == 'BONE':
+            variable.type = 'TRANSFORMS'
+            variable.targets[0].bone_target = variables[key]['bone_target']
+            variable.targets[0].transform_type = variables[key]['transform_type']
+            variable.targets[0].transform_space = variables[key]['transform_space']
+            if 'rot_mode' in variables[key].keys():
+                variable.targets[0].rotation_mode = variables[key]['rot_mode']
+                print(variables[key]['rot_mode'])
+        elif pose.target_type == 'PROP':
+            variable.targets[0].data_path = variables[key]['data_path']
+
+        var_expression = '( ' + key + ' - '
+        if 'ROT' in pose.channel:
+            var_expression = '(degrees( ' + key + ') - '
+        expression += var_expression + str(pose.transform_min) + ') / (' + str(pose.transform_max) + ' - ' + str(pose.transform_min) + '), '
+
+    expression = expression[:-2] + ')'
+
+    driver.expression = expression
+
