@@ -312,7 +312,7 @@ def add_action_driver(pose: bpy.types.PropertyGroup, target_obj: bpy.types.Actio
             variable.targets[0].data_path = variables[key]['data_path']
 
         var_expression = '( ' + key + ' - '
-        if 'ROT' in pose.channel:
+        if 'ROT' in variables[key]['transform_type']:
             var_expression = '(degrees( ' + key + ') - '
         expression += var_expression + str(variables[key]['transform_min']) + ') / (' + str(variables[key]['transform_max']) + ' - ' + str(variables[key]['transform_min']) + '), '
 
