@@ -43,7 +43,7 @@ class DATA_OT_ap_action_duplicate(bpy.types.Operator):
     def poll(cls, context):
         if context.mode == 'POSE':
             idx = context.active_object.data.ap_poses_index
-            if context.active_object.data.ap_poses[idx].action:
+            if idx != -1 and context.active_object.data.ap_poses[idx].action:
                 return True
         return False
 

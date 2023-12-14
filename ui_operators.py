@@ -296,7 +296,7 @@ class DATA_OT_ap_bone_select_from_pose(bpy.types.Operator):
     def poll(cls, context):
         if context.mode == 'POSE':
             idx = context.active_object.data.ap_poses_index
-            if context.active_object.data.ap_poses[idx].bones:
+            if idx != -1 and context.active_object.data.ap_poses[idx].bones:
                 return True
         return False
 
