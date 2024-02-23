@@ -1,11 +1,30 @@
 import bpy
 from . utilities import (is_valid_pose,
-                        purge_poses,
-                        create_pose,
-                        enable_pose_constraints,
-                        disable_pose_constraints,
-                        reset_bone_transforms,
-                        delete_temp_constraints)
+                         purge_poses,
+                         create_pose,
+                         toggle_pose_constraints,
+                         reset_bone_transforms,
+                         delete_temp_constraints)
+
+class DATA_OT_ap_pose_add(bpy.types.Operator):
+    """Adds a new pose to the armature"""
+    bl_idname = "armature.ap_pose_add"
+    bl_label = "Add Pose"
+    bl_description = "Add a new pose. If no name is provided, the default name will be used."
+    bl_options = {"REGISTER", "UNDO"}
+
+    name: bpy.props.StringProperty()
+    @classmethod
+    def poll(cls, context: bpy.types.Context):
+        return context.mode == 'POSE'
+
+    def execute(self, context: bpy.types.Context):
+        pose = context.active_object.data.ap_poses.add()
+        pose.name = self.name if self.name else context.scene.ap_preferences.default_name
+        context.active_object.data.ap_poses_index = len(context.active_object.data.ap_poses) - 1
+
+        self.report({'INFO'}, 'Pose Added Successfully')
+        return {'FINISHED'}
 
 class DATA_OT_ap_execute(bpy.types.Operator):
     bl_idname = "armature.ap_execute"
@@ -128,7 +147,7 @@ class DATA_OT_ap_action_edit(bpy.types.Operator):
             context.scene.tool_settings.use_keyframe_insert_auto = True
 
             # Disable constraints
-            disable_pose_constraints()
+            toggle_pose_constraints(False)
             
             # Recursive enabling of combo poses.
             # Needed so that the edit combines all poses that go into combos+combos
@@ -196,7 +215,7 @@ class DATA_OT_ap_action_edit(bpy.types.Operator):
 
             # Enable Constraints
             delete_temp_constraints()
-            enable_pose_constraints()
+            toggle_pose_constraints(True)
 
             #Autokey restore
             context.scene.tool_settings.use_keyframe_insert_auto = ap_state.autokey
@@ -262,6 +281,7 @@ class DATA_OT_ap_clear(bpy.types.Operator):
         return {'FINISHED'}
 
 classes = [
+    DATA_OT_ap_pose_add,
     DATA_OT_ap_execute,
     DATA_OT_ap_purge,
     DATA_OT_ap_action_edit,

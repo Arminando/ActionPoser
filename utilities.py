@@ -1,20 +1,22 @@
 import bpy
 
-def poll_is_mesh_object(self,obj):
+def poll_is_mesh_object(self,obj: bpy.types.Object) -> bool:
+    """Checks if the object is a mesh object."""
     if obj.type == 'MESH':
         return True
     else:
         return False
 
-def poll_is_armature_object(self,obj):
+def poll_is_armature_object(self,obj: bpy.types.Object) -> bool:
+    """Checks if the object is an armature object."""
     if obj.type == 'ARMATURE':
         return True
     else:
         return False
 
-def is_valid_path(pose):
+def is_valid_path(pose: bpy.types.PropertyGroup) -> bool:
+    """Checks if the data path is valid."""
     command = 'import bpy; bpy.data.objects["' + pose.target.name + '"].' + pose.data_path
-
     try:
         exec(command)
     except:
@@ -22,7 +24,8 @@ def is_valid_path(pose):
     return True
 
 
-def is_valid_pose(pose):
+def is_valid_pose(pose: bpy.types.PropertyGroup) -> bool:
+    """Checks if the pose can be created successfully."""
     if not pose.name: return False
     
     if pose.type == 'POSE':
@@ -33,12 +36,11 @@ def is_valid_pose(pose):
         else:
             if not is_valid_path(pose): return False
 
-    # if not pose.action: return False # Removed this one so that a driver will still be created for the influence regardless of the missing action.
-    
     return True
 
 
-def purge_poses():
+def purge_poses() -> None:
+    """Cleanup function which removes all poses and drivers"""
     context = bpy.context
     bones = context.active_object.pose.bones
     prefs = context.scene.ap_preferences
@@ -65,7 +67,8 @@ def purge_poses():
         except:
             pass
 
-def influence_has_driver(pose):
+def influence_has_driver(pose: bpy.types.PropertyGroup) -> bool:
+    """Checks if the pose has a driver on the influence property."""
     context = bpy.context
     anim_data = context.active_object.animation_data
     if anim_data:
@@ -77,7 +80,8 @@ def influence_has_driver(pose):
     return False
 
 
-def disable_pose_constraints():
+def toggle_pose_constraints(value: bool) -> None:
+    """Disables all bone constraints. Used in Edit Action mode."""
     context = bpy.context
     bones = context.active_object.pose.bones
     prefs = context.scene.ap_preferences
@@ -87,34 +91,29 @@ def disable_pose_constraints():
 
         for constraint in constraints:
             if prefs.constraint_prefix in constraint.name:
-                constraint.enabled = False
+                constraint.enabled = value
 
-
-def enable_pose_constraints():
+def delete_temp_constraints() -> None:
+    """Deletes all temporary constraints. Used in Edit Action mode."""
     context = bpy.context
     bones = context.active_object.pose.bones
-    prefs = context.scene.ap_preferences
-
-    for bone in bones:
-        constraints = bone.constraints
-
-        for constraint in constraints:
-            if prefs.constraint_prefix in constraint.name:
-                constraint.enabled = True
-
-def delete_temp_constraints():
-    context = bpy.context
-    bones = context.active_object.pose.bones
-    prefs = context.scene.ap_preferences
 
     for bone in bones:
         constraints = bone.constraints
 
         for constraint in constraints:
             if 'AP-edit_mode_temp_constraint' in constraint.name:
+                try:
+                    constraint.driver_remove('eval_time')
+                except:
+                    pass
+                
                 constraints.remove(constraint)
 
-def create_pose(pose, for_edit=False):
+
+
+def create_pose(pose: bpy.types.PropertyGroup, for_edit: bool=False) -> None:
+    """Creates the pose. Handles both regular and combo poses."""
     context = bpy.context
     armature = context.active_object.data
     pose_bones = context.active_object.pose.bones
@@ -124,10 +123,8 @@ def create_pose(pose, for_edit=False):
     constraint_name = prefs.constraint_prefix + pose.name
     armature[constraint_name] = 0.0
     
-    if pose.type == 'COMBO':
-        add_driver_combo(pose)
-    else:
-        add_driver_influence(pose)
+    variables = {}
+    collect_all_variables(pose, variables)
 
     for ap_bone in ap_bones:
         if ap_bone.bone not in pose_bones:
@@ -146,40 +143,43 @@ def create_pose(pose, for_edit=False):
         constraint.influence = influence
         constraint.use_eval_time = True
 
-        if not for_edit:
-            add_driver_constraint(constraint, pose)
-        else:
-            constraint.use_eval_time = True
-            constraint.eval_time = 1.0
+        # add driver to constraint
+        add_action_driver(pose, constraint, 'eval_time', variables)
+        if for_edit:
             constraint.name = 'AP-edit_mode_temp_constraint'
 
-
+    add_action_driver(pose, pose, 'influence', variables)
 
 def find_opposite_bone_name(bone: str) -> str:
+    """Returns for the symmetrical bone name."""
     try:
         return bpy.context.active_object.data.bones[swap_side_suffix(bone)].name
     except:
         return None
 
 def find_opposite_object_name(object: str) -> str:
+    """Returns for the symmetrical object name."""
     try:
         return bpy.data.objects[swap_side_suffix(object)].name
     except:
         return None
 
 def find_opposite_action_name(action: str) -> str:
+    """Returns the opposite action name."""
     try:
         return bpy.data.actions[swap_side_suffix(object)].name
     except:
         return None
 
 def find_opposite_pose_name(pose: str) -> str:
+    """Returns the opposite pose name."""
     try:
         return bpy.context.active_object.data.ap_poses[swap_side_suffix(pose)].name
     except:
         return None
 
 def swap_side_suffix(name: str) -> str:
+    """String operation that swaps the side suffixes."""
     prefs = bpy.context.scene.ap_preferences
 
     if name.endswith(prefs.left_suffix):
@@ -190,19 +190,15 @@ def swap_side_suffix(name: str) -> str:
         return name
 
 def reset_bone_transforms(name: str) -> None:
+    """Resets the bone transforms to default."""
     pose_bone = bpy.context.active_object.pose.bones[name]
     pose_bone.location = (0.0, 0.0, 0.0)
     pose_bone.rotation_euler = (0.0, 0.0, 0.0)
     pose_bone.rotation_quaternion = (1.0, 0.0, 0.0, 0.0)
     pose_bone.scale = (1.0, 1.0, 1.0)
 
-
-def normalize_min_max(value: float, value_min: float, value_max: float) -> float:
-        return max(0.0, (value - value_min) / (value_max - value_min))
-
-
-def add_driver_constraint(constraint: bpy.types.Constraint, pose) -> bpy.types.Driver:
-    """Adds driver to property"""
+def add_driver_constraint(constraint: bpy.types.Constraint, pose: bpy.types.PropertyGroup) -> bpy.types.Driver:
+    """Adds a driver to the Action Constraint's evaluation time."""
     
     driver = constraint.driver_add('eval_time').driver
     driver.type = 'AVERAGE'
@@ -214,8 +210,10 @@ def add_driver_constraint(constraint: bpy.types.Constraint, pose) -> bpy.types.D
 
     return driver
 
-def add_driver_combo(pose) -> bpy.types.Driver:
-    """Adds driver to property"""
+def add_driver_combo(pose: bpy.types.PropertyGroup) -> bpy.types.Driver:
+    """Adds combo driver to influence property of the pose.
+        Currently produces a cycle error. Needs to be fixed.
+    """
     if not pose.corr_pose_A or not pose.corr_pose_B:
         return
     variable_names = ['corrA', 'corrB']
@@ -232,8 +230,8 @@ def add_driver_combo(pose) -> bpy.types.Driver:
 
     return driver
 
-def add_driver_influence(pose):
-    """Adds driver to property"""
+def add_driver_influence(pose: bpy.types.PropertyGroup) -> bpy.types.Driver:
+    """Adds driver to a pose's influence property."""
     
     driver = pose.driver_add('influence').driver
     variable = driver.variables.new()
@@ -256,7 +254,8 @@ def add_driver_influence(pose):
 
     return driver
 
-def update_ap_poses_index(self, context):
+def update_ap_poses_index(self, context: bpy.types.Context) -> None:
+    """Switches active action when switching between poses in Edit Action mode."""
     armature = context.active_object.data
 
     if armature.ap_state.editing:
@@ -264,3 +263,60 @@ def update_ap_poses_index(self, context):
         bpy.ops.armature.ap_action_edit(idx = armature.ap_poses_index)
         #Enter new action edit with updated action
         bpy.ops.armature.ap_action_edit(idx = armature.ap_poses_index)
+
+def collect_all_variables(pose: bpy.types.PropertyGroup, variables: dict) -> dict:
+    """Collects all the variables to be used in the pose's driver expression."""
+
+    if pose.type == 'COMBO':
+        if not pose.corr_pose_A or not pose.corr_pose_B:
+            return
+        collect_all_variables(bpy.context.active_object.data.ap_poses[pose.corr_pose_A], variables)
+        collect_all_variables(bpy.context.active_object.data.ap_poses[pose.corr_pose_B], variables)
+    else:
+        var_name = "var" + str(len(variables.keys()))
+        variables[var_name] = {}
+        variables[var_name]['target'] = pose.target
+
+        if pose.target_type == 'BONE':
+            variables[var_name]['bone_target'] = pose.bone
+            variables[var_name]['transform_type'] = pose.channel
+            variables[var_name]['transform_space'] = pose.space
+            variables[var_name]['transform_min'] = pose.transform_min
+            variables[var_name]['transform_max'] = pose.transform_max
+            if 'ROT' in pose.channel:
+                variables[var_name]['rot_mode'] = pose.rot_mode
+        elif pose.target_type == 'PROP':
+            variables[var_name]['data_path'] = pose.data_path
+
+def add_action_driver(pose: bpy.types.PropertyGroup, target_obj: bpy.types.ActionConstraint, property: str, variables: dict) -> None:
+    """Adds a driver to the action constraint with the given variables"""
+
+    driver = target_obj.driver_add(property).driver
+    driver.type = 'SCRIPTED'
+
+    expression = 'min('
+
+    for key in variables.keys():
+        variable = driver.variables.new()
+        variable.name = key
+        variable.targets[0].id = variables[key]['target']
+
+        if pose.target_type == 'BONE':
+            variable.type = 'TRANSFORMS'
+            variable.targets[0].bone_target = variables[key]['bone_target']
+            variable.targets[0].transform_type = variables[key]['transform_type']
+            variable.targets[0].transform_space = variables[key]['transform_space']
+            if 'rot_mode' in variables[key].keys():
+                variable.targets[0].rotation_mode = variables[key]['rot_mode']
+        elif pose.target_type == 'PROP':
+            variable.targets[0].data_path = variables[key]['data_path']
+
+        var_expression = '( ' + key + ' - '
+        if 'ROT' in variables[key]['transform_type']:
+            var_expression = '(degrees( ' + key + ') - '
+        expression += var_expression + str(variables[key]['transform_min']) + ') / (' + str(variables[key]['transform_max']) + ' - ' + str(variables[key]['transform_min']) + '), '
+
+    expression = expression[:-2] + ')'
+
+    driver.expression = expression
+
