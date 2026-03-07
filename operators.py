@@ -187,7 +187,7 @@ class DATA_OT_ap_action_edit(bpy.types.Operator):
 
             # Selected bones restore
             for bone in armature_pose.bones:
-                bone.bone.select = False
+                bone.select = False
                 reset_bone_transforms(bone.name)
                 bone.location = ap_bone_transforms[bone.name].location
                 bone.rotation_euler = ap_bone_transforms[bone.name].rotation_euler
@@ -197,7 +197,7 @@ class DATA_OT_ap_action_edit(bpy.types.Operator):
             if ap_state.selected_bones:
                 for bone in ap_state.selected_bones:
                     try:
-                        armature_pose.bones[bone.name].bone.select = True
+                        armature_pose.bones[bone.name].select = True
                     except:
                         print("Bone could not be selected: " + bone.name)
             ap_state.selected_bones.clear()

@@ -349,7 +349,7 @@ class DATA_OT_ap_bone_add_from_action(bpy.types.Operator):
 
         elif self.mode == 'SELECT':
             for group in groups:
-                armature_pose.bones[group].bone.select = True
+                armature_pose.bones[group].select = True
                 
         return {'FINISHED'}
         
@@ -422,7 +422,7 @@ class DATA_OT_ap_target_select(bpy.types.Operator):
                 context.view_layer.objects.active = ap_pose.target
                 bpy.ops.object.mode_set(mode='POSE')
 
-        ap_pose.target.pose.bones[ap_pose.bone].bone.select = True
+        ap_pose.target.pose.bones[ap_pose.bone].select = True
         ap_pose.target.data.bones.active = ap_pose.target.data.bones[ap_pose.bone]
                 
         return {'FINISHED'}
