@@ -160,7 +160,7 @@ class VIEW3D_PT_action_poser_action(ActionPoserPanel):
 
 class VIEW3D_PT_action_poser_targets(ActionPoserPanel):
     bl_parent_id = "VIEW3D_PT_action_poser"
-    bl_label = "Targets"
+    bl_label = "Target Bones"
 
     def draw(self, context: Context) -> None:
         scene = context.scene
@@ -173,28 +173,23 @@ class VIEW3D_PT_action_poser_targets(ActionPoserPanel):
             active_pose = None
 
         if active_pose:
-            layout.prop(armature, 'ap_targets', expand = True)
-
             layout.use_property_split = True
             layout.use_property_decorate = False
 
-            if armature.ap_targets == 'BONES':
-                row = layout.row()
-                row.template_list("VIEW3D_UL_bones_list", "", active_pose, "bones", armature, "ap_bones_index")
+            row = layout.row()
+            row.template_list("VIEW3D_UL_bones_list", "", active_pose, "bones", armature, "ap_bones_index")
 
-                col = row.column(align=True)
-                col.operator("armature.ap_bone_add", icon='ADD', text="").idx = armature.ap_poses_index
-                op = col.operator("armature.ap_bone_remove", icon='REMOVE', text="")
-                op.idx = armature.ap_poses_index
-                op.bone_idx = armature.ap_bones_index
-                col.separator()
-                col.operator("armature.ap_bone_add_selected", icon='SELECT_EXTEND', text="").idx = armature.ap_poses_index
-                col.operator("armature.ap_bone_remove_selected", icon='SELECT_SUBTRACT', text="").idx = armature.ap_poses_index
-                col.operator("armature.ap_bone_add_from_action", icon='ACTION_TWEAK', text="").mode = 'ADD'
-                col.separator()
-                col.menu("VIEW3D_MT_bones_menu", icon='DOWNARROW_HLT', text="")
-            elif armature.ap_targets == 'SHAPE_KEYS':
-                layout.label(text='radi')
+            col = row.column(align=True)
+            col.operator("armature.ap_bone_add", icon='ADD', text="").idx = armature.ap_poses_index
+            op = col.operator("armature.ap_bone_remove", icon='REMOVE', text="")
+            op.idx = armature.ap_poses_index
+            op.bone_idx = armature.ap_bones_index
+            col.separator()
+            col.operator("armature.ap_bone_add_selected", icon='SELECT_EXTEND', text="").idx = armature.ap_poses_index
+            col.operator("armature.ap_bone_remove_selected", icon='SELECT_SUBTRACT', text="").idx = armature.ap_poses_index
+            col.operator("armature.ap_bone_add_from_action", icon='ACTION_TWEAK', text="").mode = 'ADD'
+            col.separator()
+            col.menu("VIEW3D_MT_bones_menu", icon='DOWNARROW_HLT', text="")
 
 
 class VIEW3D_PT_action_poser_prefs(ActionPoserPanel):
@@ -231,7 +226,7 @@ class VIEW3D_UL_actions_list(UIList):
             icon = 'NONE'
         split.prop(item, "name", text="", icon=icon, emboss = False)
         
-        split.prop(item, "influence", text="")
+        split.prop(item, "influence", text="", slider = True)
         
         if item.build:
             icon = 'HIDE_OFF'
@@ -310,12 +305,24 @@ class VIEW3D_UL_bones_list(UIList):
         split.prop(item, "influence", emboss=True, text='', slider = True)
 
     def filter_items(self, context, data, propname):
+        # This function gets the collection property (as the usual tuple (data, propname)), and must return two lists:
+        # * The first one is for filtering, it must contain 32bit integers were self.bitflag_filter_item marks the
+        #   matching item as filtered (i.e. to be shown), and 31 other bits are free for custom needs. Here we use the
+        #   first one to mark VGROUP_EMPTY.
+        # * The second one is for reordering, it must return a list containing the new indices of the items (which
+        #   gives us a mapping org_idx -> new_idx).
+        # Please note that the default UI_UL_list defines helper functions for common tasks (see its doc for more info).
+        # If you do not make filtering and/or ordering, return empty list(s) (this will be more efficient than
+        # returning full lists doing nothing!).
         ap_bones = getattr(data, propname)
         helper_funcs = bpy.types.UI_UL_list
         
         # Default return values.
         flt_flags = []
         flt_neworder = []
+
+        # # Pre-compute of vgroups data, CPU-intensive. :/
+        # vgroups_empty = self.filter_items_empty_vgroups(context, vgroups)
 
         # Filtering by name
         if self.filter_name:
@@ -326,14 +333,14 @@ class VIEW3D_UL_bones_list(UIList):
 
         # Reorder by name.
         if self.use_filter_sort_alpha:
-            name_dict = {}
-            for i, bone in enumerate(ap_bones):
-                name_dict[bone.bone] = i
-            names = sorted(name_dict.keys())
-            for name in names:
-                flt_neworder.append(name_dict[name])
+            sorted_names = [x.bone for x in ap_bones]
+            sorted_names.sort()
             if self.use_filter_sort_reverse:
-                flt_neworder.reverse()
+                sorted_names.reverse()
+            for name in sorted_names:
+                flt_neworder.append(ap_bones[name])
+
+            # flt_neworder = helper_funcs.sort_items_helper(ap_bones, "bone", reverse=self.use_filter_sort_reverse)
 
         return flt_flags, flt_neworder
         

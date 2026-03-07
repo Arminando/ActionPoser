@@ -1,31 +1,9 @@
 import bpy
 from . utilities import (find_opposite_bone_name,
-                        find_opposite_object_name,
-                        find_opposite_action_name, find_opposite_pose_name,
-                        swap_side_suffix,
-                        disable_pose_constraints,
-                        enable_pose_constraints)
-
-class DATA_OT_ap_pose_add(bpy.types.Operator):
-    bl_idname = "armature.ap_pose_add"
-    bl_label = "Add action pose"
-    bl_description = "Creates a new empty pose"
-    bl_options = {"REGISTER", "UNDO"}
-
-    @classmethod
-    def poll(cls, context):
-        return context.mode == 'POSE'
-
-    def execute(self, context):
-        prefs = context.scene.ap_preferences
-        
-        pose = context.active_object.data.ap_poses.add()
-        pose.name = prefs.default_name
-
-        armature = context.active_object.data
-        armature.ap_poses_index = len(armature.ap_poses) - 1
-
-        return {'FINISHED'}
+                         find_opposite_object_name,
+                         find_opposite_action_name, find_opposite_pose_name,
+                         swap_side_suffix,
+                         )
 
 class DATA_OT_ap_pose_remove(bpy.types.Operator):
     bl_idname = "armature.ap_pose_remove"
@@ -318,7 +296,7 @@ class DATA_OT_ap_bone_select_from_pose(bpy.types.Operator):
     def poll(cls, context):
         if context.mode == 'POSE':
             idx = context.active_object.data.ap_poses_index
-            if context.active_object.data.ap_poses[idx].bones:
+            if idx != -1 and context.active_object.data.ap_poses[idx].bones:
                 return True
         return False
 
@@ -371,7 +349,7 @@ class DATA_OT_ap_bone_add_from_action(bpy.types.Operator):
 
         elif self.mode == 'SELECT':
             for group in groups:
-                armature_pose.bones[group].bone.select = True
+                armature_pose.bones[group].select = True
                 
         return {'FINISHED'}
         
@@ -444,14 +422,13 @@ class DATA_OT_ap_target_select(bpy.types.Operator):
                 context.view_layer.objects.active = ap_pose.target
                 bpy.ops.object.mode_set(mode='POSE')
 
-        ap_pose.target.pose.bones[ap_pose.bone].bone.select = True
+        ap_pose.target.pose.bones[ap_pose.bone].select = True
         ap_pose.target.data.bones.active = ap_pose.target.data.bones[ap_pose.bone]
                 
         return {'FINISHED'}
 
 
 classes = [
-    DATA_OT_ap_pose_add,
     DATA_OT_ap_pose_remove,
     DATA_OT_ap_pose_duplicate,
     DATA_OT_ap_pose_mirror,
